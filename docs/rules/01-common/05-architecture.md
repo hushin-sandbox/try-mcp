@@ -1,9 +1,5 @@
-## アーキテクチャ
+<!-- ## Architecture
 
 ### Tech Stack
 
-WIP
-
-### Project Structure
-
-WIP
+### Project Structure -->
