@@ -61,10 +61,4 @@ find ./01-common -type f -name "*.md" | sort | while read file; do
   echo "" >> "$ROOT_DIR/.cursor/rules/common.mdc"
 done
 
-# frontend ディレクトリのファイルを結合
-find ./02-frontend -type f -name "*.md" | sort | while read file; do
-  cat "$file" >> "$ROOT_DIR/.cursor/rules/frontend.mdc"
-  echo "" >> "$ROOT_DIR/.cursor/rules/frontend.mdc"
-done
-
 echo "Rules files have been generated in .cursor/rules/ directory successfully."
