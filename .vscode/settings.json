@@ -5,6 +5,6 @@
     }
   ],
   "chat.promptFilesLocations": {
-    "docs/prompts": true
+    "ai/prompts": true
   }
 }
