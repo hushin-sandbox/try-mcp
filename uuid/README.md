@@ -53,7 +53,7 @@ npm start
 MCP インスペクターを使用して、サーバーの機能をテストできます：
 
 ```bash
-npx @modelcontextprotocol/inspector stdio "node dist/index.js"
+npx @modelcontextprotocol/inspector node dist/index.js
 ```
 
 ### Claude Desktop との連携
