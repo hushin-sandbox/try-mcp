@@ -2,7 +2,83 @@
 
 ## イントロダクション
 
-Model Context Protocol（MCP）は、アプリケーションが LLM に文脈を提供するための標準化された方法を定義するプロトコルです。このルールでは、TypeScript SDK を使用して MCP サーバーを実装するための標準的な構造とベストプラクティスを定義します。MCP サーバーはリソース（データ）、ツール（機能）、プロンプト（テンプレート）を通じて、LLM アプリケーションと相互作用するための標準化されたインターフェイスを提供します。
+Model Context Protocol（MCP）は、アプリケーションが LLM に文脈を提供するための標準化された方法を定義するプロトコルです。
+このルールでは、TypeScript SDK を使用して MCP サーバーを実装するための標準的な構造とベストプラクティスを定義します。
+MCP サーバーはリソース（データ）、ツール（機能）、プロンプト（テンプレート）を通じて、
+LLM アプリケーションと相互作用するための標準化されたインターフェイスを提供します。
+
+## プロジェクト構成
+
+このプロジェクトでは、MCP サーバーの実装は `mcps/` ディレクトリ配下に機能単位でディレクトリを作成して管理します。
+各 MCP サーバーは独立した npm パッケージとして実装します。
+
+### ディレクトリ構成例
+
+参考実装として `mcps/uuid/` があります。新しい MCP サーバーを作成する場合は、以下のような構成を参考にしてください：
+
+```
+mcps/
+  uuid/          # UUIDサービスの例
+    package.json
+    README.md
+    tsconfig.json
+    src/
+      index.ts   # エントリーポイント
+      server.ts  # MCPサーバーの実装
+  your-service/  # 新しいサービスの例
+    package.json
+    README.md
+    tsconfig.json
+    src/
+      index.ts
+      server.ts
+```
+
+### 新しい MCP サーバーの作成手順
+
+1. `mcps/` 配下に新しいディレクトリを作成
+
+   ```bash
+   mkdir mcps/your-service
+   cd mcps/your-service
+   ```
+
+2. npm プロジェクトを初期化
+
+   ```bash
+   npm init -y
+   ```
+
+3. 必要な依存関係をインストール
+
+   ```bash
+   npm install @modelcontextprotocol/sdk zod
+   npm install --save-dev typescript @types/node
+   ```
+
+4. TypeScript の設定を行う（`tsconfig.json` を作成）
+
+   ```json
+   {
+     "compilerOptions": {
+       "target": "ES2020",
+       "module": "NodeNext",
+       "moduleResolution": "NodeNext",
+       "esModuleInterop": true,
+       "strict": true,
+       "skipLibCheck": true,
+       "forceConsistentCasingInFileNames": true,
+       "outDir": "dist"
+     },
+     "include": ["src"]
+   }
+   ```
+
+5. 基本的なファイル構造を作成
+   ```bash
+   mkdir src
+   touch src/index.ts src/server.ts
+   ```
 
 ## パターンの説明
 
@@ -336,21 +412,12 @@ server.tool('unsafeRead', { path: z.string() }, async ({ path }) => {
 ## ベストプラクティス
 
 1. **明確なドキュメント**：各リソース、ツール、プロンプトには明確な説明を提供する
-
 2. **適切なエラー処理**：すべてのエラーを捕捉し、適切なエラーメッセージを返す
-
 3. **入力検証**：Zod スキーマを使用して、すべての入力パラメータを厳密に検証する
-
 4. **セキュリティ対策**：特に外部入力を扱う場合は、適切なセキュリティ対策を実装する
-
 5. **モジュール化**：複雑なサーバーはコンポーネントに分割し、責任を分離する
-
 6. **テスト**：各リソース、ツール、プロンプトのユニットテストを作成する
-
 7. **動的状態管理**：必要に応じて、サーバーの状態を適切に管理する。状態変更時にはリソースの更新通知を送信する
-
 8. **パフォーマンス考慮**：重い処理はバックグラウンドで実行し、応答性を維持する
-
 9. **統一されたレスポンスフォーマット**：一貫したレスポンスフォーマットを維持する
-
 10. **進捗報告**：長時間実行される操作では、進捗状況を報告する
