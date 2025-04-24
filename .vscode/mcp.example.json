@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "uuid": {
+      "command": "/path/node",
+      "args": ["${workspaceFolder}/mcps/uuid/dist/index.js"]
+    }
+  }
+}
