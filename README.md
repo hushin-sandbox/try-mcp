@@ -36,8 +36,9 @@ UUID を作成して ai-out/(uuid).md に 「hoge」と書かれたファイル�
 
 ## Development
 
-[Building MCP with LLMs - Model Context Protocol](https://modelcontextprotocol.io/tutorials/building-mcp-with-llms)
+[TypeScript SDK を使用した MCP サーバー実装 プロンプト](ai/prompts/typescript-mcp-server.prompt.md)
 
 ## 参考リンク
 
 - [Model Context Protocol](https://github.com/modelcontextprotocol)
+- [Building MCP with LLMs - Model Context Protocol](https://modelcontextprotocol.io/tutorials/building-mcp-with-llms)
