@@ -1,0 +1,356 @@
+# TypeScript SDK を使用した MCP サーバー実装
+
+## イントロダクション
+
+Model Context Protocol（MCP）は、アプリケーションが LLM に文脈を提供するための標準化された方法を定義するプロトコルです。このルールでは、TypeScript SDK を使用して MCP サーバーを実装するための標準的な構造とベストプラクティスを定義します。MCP サーバーはリソース（データ）、ツール（機能）、プロンプト（テンプレート）を通じて、LLM アプリケーションと相互作用するための標準化されたインターフェイスを提供します。
+
+## パターンの説明
+
+MCP サーバーの実装は、以下の主要コンポーネントで構成されます：
+
+### 1. サーバー設定と初期化
+
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod'; // パラメータバリデーション用
+
+// MCPサーバーインスタンスを作成
+const server = new McpServer({
+  name: 'サーバー名',
+  version: '1.0.0',
+});
+
+// サーバーコンポーネントを設定（以下のセクションで詳細を説明）
+// ...リソース、ツール、プロンプトの定義
+
+// トランスポートを選択して接続
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+### 2. リソース（Resources）の実装
+
+リソースは LLM に提供するデータを表します。静的なリソースと動的（テンプレート）リソースの 2 種類があります：
+
+```typescript
+import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
+
+// 静的リソースの定義
+server.resource(
+  'static-resource', // リソースID
+  'custom-scheme://static', // URIスキーム
+  async (uri) => ({
+    contents: [
+      {
+        uri: uri.href,
+        text: '静的なコンテンツをここに', // 提供するテキストデータ
+        // または以下のようにバイナリデータを提供
+        // base64: "base64でエンコードされたバイナリデータ",
+        // mimeType: "image/png" // 適切なMIMEタイプ
+      },
+    ],
+  })
+);
+
+// 動的リソース（テンプレート）の定義
+server.resource(
+  'dynamic-resource', // リソースID
+  new ResourceTemplate('custom-scheme://{param}', { list: undefined }), // URIテンプレート
+  async (uri, params) => ({
+    contents: [
+      {
+        uri: uri.href,
+        text: `パラメータ値: ${params.param}`,
+      },
+    ],
+  })
+);
+```
+
+### 3. ツール（Tools）の実装
+
+ツールは、LLM が実行できる機能/アクションを表します：
+
+```typescript
+// シンプルなツールの定義
+server.tool(
+  'calculator', // ツール名
+  {
+    a: z.number(),
+    b: z.number(),
+    operation: z.enum(['add', 'subtract', 'multiply', 'divide']),
+  }, // パラメータスキーマ（Zodを使用）
+  async ({ a, b, operation }) => {
+    let result;
+    switch (operation) {
+      case 'add':
+        result = a + b;
+        break;
+      case 'subtract':
+        result = a - b;
+        break;
+      case 'multiply':
+        result = a * b;
+        break;
+      case 'divide':
+        if (b === 0) {
+          return {
+            content: [{ type: 'text', text: '0で除算できません' }],
+            isError: true,
+          };
+        }
+        result = a / b;
+        break;
+    }
+    return {
+      content: [{ type: 'text', text: String(result) }],
+    };
+  }
+);
+
+// 外部APIを呼び出すツール
+server.tool('fetch-data', { endpoint: z.string() }, async ({ endpoint }) => {
+  try {
+    const response = await fetch(`https://api.example.com/${endpoint}`);
+    const data = await response.json();
+    return {
+      content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+    };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: `エラー: ${error.message}` }],
+      isError: true,
+    };
+  }
+});
+```
+
+### 4. プロンプト（Prompts）の実装
+
+プロンプトは、LLM との対話のためのテンプレートを提供します：
+
+```typescript
+// シンプルなプロンプトテンプレート
+server.prompt(
+  'code-review', // プロンプト名
+  {
+    code: z.string(),
+    language: z.string().optional().default('JavaScript'),
+  }, // パラメータスキーマ
+  ({ code, language }) => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text: `以下の${language}コードをレビューしてください：\n\n\`\`\`${language}\n${code}\n\`\`\``,
+        },
+      },
+    ],
+  })
+);
+```
+
+### 5. トランスポートの設定
+
+MCP サーバーでは、`stdio`トランスポートを使用してコマンドラインツールや直接統合向けに実装します：
+
+```typescript
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+const transport = new StdioServerTransport();
+await server.connect(transport);
+```
+
+## 実装例
+
+以下は、簡単な計算機能を提供する MCP サーバーの完全な実装例です：
+
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+
+// サーバーの作成
+const server = new McpServer({
+  name: 'Calculator',
+  version: '1.0.0',
+});
+
+// 計算履歴を保存するリソース
+let calculationHistory = '';
+
+server.resource('history', 'calc://history', async (uri) => ({
+  contents: [
+    {
+      uri: uri.href,
+      text: calculationHistory || '計算履歴はまだありません',
+    },
+  ],
+}));
+
+// 計算機能を提供するツール
+server.tool(
+  'calculate',
+  {
+    expression: z.string().describe('計算式（例: 2 + 2、5 * 3 など）'),
+  },
+  async ({ expression }) => {
+    try {
+      // 注意: 実際のアプリケーションでは、eval の使用は避け、安全な計算ライブラリを使用してください
+      const result = eval(expression);
+
+      // 履歴に追加
+      const entry = `${expression} = ${result}\n`;
+      calculationHistory += entry;
+
+      return {
+        content: [{ type: 'text', text: String(result) }],
+      };
+    } catch (error) {
+      return {
+        content: [{ type: 'text', text: `計算エラー: ${error.message}` }],
+        isError: true,
+      };
+    }
+  }
+);
+
+// 計算プロンプトの定義
+server.prompt('solve-math', { problem: z.string() }, ({ problem }) => ({
+  messages: [
+    {
+      role: 'user',
+      content: {
+        type: 'text',
+        text:
+          `以下の数学問題を解いてください：\n\n${problem}\n\n` +
+          `ステップバイステップで解説し、最後に最終的な答えを示してください。`,
+      },
+    },
+  ],
+}));
+
+// サーバーを起動する非同期関数
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+}
+
+main().catch((error) => {
+  console.error('Fatal error in main():', error);
+  process.exit(1);
+});
+```
+
+## 一般的な落とし穴
+
+### 1. エラー処理の欠落
+
+ツールやリソースのハンドラで適切なエラー処理を行わないと、予期しない例外が発生する可能性があります。常に try-catch ブロックを使用し、エラーステータスを適切に返してください。
+
+```typescript
+// 良い例
+server.tool('example', { input: z.string() }, async ({ input }) => {
+  try {
+    // 処理
+    return { content: [{ type: 'text', text: '結果' }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: `エラー: ${error.message}` }],
+      isError: true,
+    };
+  }
+});
+
+// 悪い例
+server.tool('example', { input: z.string() }, async ({ input }) => {
+  // エラー処理なし
+  const result = someFunctionThatMightThrow(input);
+  return { content: [{ type: 'text', text: result }] };
+});
+```
+
+### 2. パラメータバリデーションの不足
+
+Zod スキーマを適切に設定せず、必要な型チェックやバリデーションを行わないと、予期しない入力データに対して脆弱になります。
+
+```typescript
+// 良い例
+{
+  userId: z.string().uuid().describe("有効なUUID形式のユーザーID"),
+  count: z.number().int().positive().describe("取得するアイテム数")
+}
+
+// 悪い例
+{
+  userId: z.string(),
+  count: z.number()
+}
+```
+
+### 3. 無限ループやブロッキング操作
+
+非同期処理を適切に扱わないと、サーバーが応答しなくなる可能性があります。
+
+```typescript
+// 良い例
+server.tool('longProcess', {}, async () => {
+  const result = await asyncOperation();
+  return { content: [{ type: 'text', text: result }] };
+});
+
+// 悪い例
+server.tool('blockingProcess', {}, () => {
+  // ブロッキング操作
+  const result = synchronousLongRunningOperation();
+  return { content: [{ type: 'text', text: result }] };
+});
+```
+
+### 4. セキュリティリスクの無視
+
+特に外部入力を処理する場合や、ファイルシステムやデータベースにアクセスする場合は、セキュリティリスクに注意が必要です。
+
+```typescript
+// 良い例
+server.tool(
+  'readFile',
+  {
+    path: z.string().refine((path) => !path.includes('..'), {
+      message: "パスに'..'を含めることはできません",
+    }),
+  },
+  async ({ path }) => {
+    // 安全なパス検証後に処理
+  }
+);
+
+// 悪い例
+server.tool('unsafeRead', { path: z.string() }, async ({ path }) => {
+  // パス検証なしでファイル読み込み
+});
+```
+
+## ベストプラクティス
+
+1. **明確なドキュメント**：各リソース、ツール、プロンプトには明確な説明を提供する
+
+2. **適切なエラー処理**：すべてのエラーを捕捉し、適切なエラーメッセージを返す
+
+3. **入力検証**：Zod スキーマを使用して、すべての入力パラメータを厳密に検証する
+
+4. **セキュリティ対策**：特に外部入力を扱う場合は、適切なセキュリティ対策を実装する
+
+5. **モジュール化**：複雑なサーバーはコンポーネントに分割し、責任を分離する
+
+6. **テスト**：各リソース、ツール、プロンプトのユニットテストを作成する
+
+7. **動的状態管理**：必要に応じて、サーバーの状態を適切に管理する。状態変更時にはリソースの更新通知を送信する
+
+8. **パフォーマンス考慮**：重い処理はバックグラウンドで実行し、応答性を維持する
+
+9. **統一されたレスポンスフォーマット**：一貫したレスポンスフォーマットを維持する
+
+10. **進捗報告**：長時間実行される操作では、進捗状況を報告する
