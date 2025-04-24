@@ -88,8 +88,6 @@ EOF
 cd "$ROOT_DIR/ai/rules"
 generate_mdc_file "$CURSOR_RULES_DIR/common.mdc" "common rule" "" "true" "./01-common"
 
-# frontend.mdc を生成
-generate_mdc_file "$CURSOR_RULES_DIR/frontend.mdc" "Frontend React" "*.tsx,*.ts" "false" "./02-frontend"
 cd "$ROOT_DIR"
 
 # プロンプトファイルをMDCファイルに変換する関数
