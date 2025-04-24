@@ -7,7 +7,7 @@ import process from 'node:process';
  */
 async function main() {
   try {
-    console.error('UUIDジェネレーターMCPサーバーを起動します...');
+    console.log('UUIDジェネレーターMCPサーバーを起動します...');
 
     // UUIDサーバーの作成
     const server = createUuidServer();
@@ -16,13 +16,13 @@ async function main() {
     const transport = new StdioServerTransport();
 
     // サーバーの接続
-    console.error('サーバーを接続中...');
+    console.log('サーバーを接続中...');
     await server.connect(transport);
-    console.error('MCPサーバーが正常に接続されました。要求を待機中...');
+    console.log('MCPサーバーが正常に接続されました。要求を待機中...');
 
     // プロセス終了時の処理
     process.on('SIGINT', async () => {
-      console.error('終了シグナルを受信しました。サーバーを停止します...');
+      console.log('終了シグナルを受信しました。サーバーを停止します...');
       await server.close();
       process.exit(0);
     });
