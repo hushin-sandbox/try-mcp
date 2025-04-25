@@ -76,6 +76,8 @@ mcps/
    npm init -y
    ```
 
+   package 名は `mcp-(name)` にします
+
 3. 必要な依存関係をインストール
 
    ```bash
@@ -109,10 +111,13 @@ mcps/
    ```
 
 6. package.json の scripts 追加
+
    ```
     "build": "tsc",
     "start": "node dist/index.js",
    ```
+
+7. README の作成
 
 ## パターンの説明
 
@@ -353,6 +358,16 @@ main().catch((error) => {
   process.exit(1);
 });
 ```
+
+## MCP インスペクターでのテスト
+
+MCP インスペクターを使用して、サーバーの機能をテストできます：
+
+```bash
+npx @modelcontextprotocol/inspector node dist/index.js
+```
+
+ユーザーに http://localhost:6274/ で確認を促します。
 
 ## 一般的な落とし穴
 
