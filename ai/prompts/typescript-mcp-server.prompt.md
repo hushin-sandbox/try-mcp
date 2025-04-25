@@ -48,24 +48,17 @@ MCP サーバーを実装する際、ユーザーの要件が曖昧な場合は�
 
 ### ディレクトリ構成例
 
-参考実装として `mcps/uuid/` があります。新しい MCP サーバーを作成する場合は、以下のような構成を参考にしてください：
+新しい MCP サーバーを作成する場合は、以下のような構成を参考にしてください：
 
 ```
 mcps/
-  uuid/          # UUIDサービスの例
+  your-service/
     package.json
     README.md
     tsconfig.json
     src/
       index.ts   # エントリーポイント
       server.ts  # MCPサーバーの実装
-  your-service/  # 新しいサービスの例
-    package.json
-    README.md
-    tsconfig.json
-    src/
-      index.ts
-      server.ts
 ```
 
 ### 新しい MCP サーバーの作成手順
@@ -109,9 +102,16 @@ mcps/
    ```
 
 5. 基本的なファイル構造を作成
+
    ```bash
    mkdir src
    touch src/index.ts src/server.ts
+   ```
+
+6. package.json の scripts 追加
+   ```
+    "build": "tsc",
+    "start": "node dist/index.js",
    ```
 
 ## パターンの説明
