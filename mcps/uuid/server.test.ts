@@ -3,7 +3,7 @@ import { test } from "@std/testing/bdd";
 import { createServer } from "./server.ts";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { validate } from "uuid";
 
 test("generate-uuid should return a valid UUID v4", async () => {
@@ -21,17 +21,12 @@ test("generate-uuid should return a valid UUID v4", async () => {
     server.connect(serverTransport),
   ]);
 
-  const result = await client.request(
-    {
-      method: "tools/call",
-      params: {
-        name: "generate-uuid",
-      },
-    },
-    CallToolResultSchema,
-  );
+  const result = await client.callTool({
+    name: "generate-uuid",
+  });
 
-  expect(result.content[0].type).toBe("text");
-  const uuid = result.content[0].text;
-  expect(validate(uuid as string)).toBe(true);
+  const toolResult = result.result as CallToolResult;
+  expect(toolResult.content[0].type).toBe("text");
+  const uuid = toolResult.content[0].text;
+  expect(validate(uuid)).toBe(true);
 });
