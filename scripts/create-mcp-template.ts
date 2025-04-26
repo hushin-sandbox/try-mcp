@@ -1,5 +1,4 @@
 #!/usr/bin/env -S deno run -A --ext=ts
-/* @script */
 import { parseArgs } from "node:util";
 import $ from "jsr:@david/dax@0.43.0";
 
