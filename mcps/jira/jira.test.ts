@@ -29,7 +29,6 @@ test("getProjects formats project data correctly", () => {
   const formattedProject = client.formatProject(mockRawProject);
 
   expect(formattedProject).toEqual({
-    id: "10000",
     key: "SMP",
     name: "Sample Project",
     url: "https://example.atlassian.net/jira/software/projects/SMP/summary",
@@ -216,35 +215,20 @@ test("formats Issue with parent", () => {
   const formattedIssue = client.formatIssue(rawIssue);
 
   expect(formattedIssue).toEqual({
-    id: "10005",
     key: "SMP-6",
     url: "https://example.atlassian.net/browse/SMP-6",
     fields: {
       summary: "サンプル タスク 4",
-      description: "",
-      issuetype: {
-        id: "10001",
-        name: "タスク",
-        description: "さまざまな小規模作業。",
-        hierarchyLevel: 0,
-      },
-      status: {
-        name: "To Do",
-        category: "new",
-      },
+      description: "[未取得]",
+      issuetype: "タスク",
+      status: "To Do",
       parent: {
-        id: "10000",
         key: "SMP-1",
         url: "https://example.atlassian.net/browse/SMP-1",
         fields: {
           summary: "サンプル エピック 2",
-          description: "",
-          issuetype: {
-            id: "10002",
-            name: "エピック",
-            description: "一連の関連するバグ、ストーリー、タスクを追跡します。",
-            hierarchyLevel: 1,
-          },
+          description: "[未取得]",
+          issuetype: "エピック",
         },
       },
     },
