@@ -165,6 +165,7 @@ test("converts Jira description to Markdown", () => {
 本文中に**太字とか **aaa *italic*
 
 - list
+
   - nested list
 
 1. first
