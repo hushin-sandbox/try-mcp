@@ -48,7 +48,7 @@ MCP サーバーを実装する際、ユーザーの要件が曖昧な場合は�
 
 ### ディレクトリ構成例
 
-新しい MCP サーバーを作成する場合は、以下のような構成にする
+新しい MCP サーバーを作成する場合は、以下のような構成にします。
 `./scripts/create-mcp-template.ts --name <mcp-server-name>` で雛形を生成できます。
 
 ```
@@ -61,6 +61,8 @@ mcps/
     server.test.ts # MCPサーバーのテスト
 ```
 
+参考実装として mcps/uuid/ があります。
+
 ## パターンの説明
 
 MCP サーバーの実装は、以下の主要コンポーネントで構成されます：
@@ -72,7 +74,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod'; // パラメータバリデーション用
 
-// MCPサーバーインスタンスを作成
+// MCPサーバーインスタンスを作成 (server.ts で createServer 内で定義)
 const server = new McpServer({
   name: 'サーバー名',
   version: '1.0.0',
@@ -81,7 +83,7 @@ const server = new McpServer({
 // サーバーコンポーネントを設定（以下のセクションで詳細を説明）
 // ...リソース、ツール、プロンプトの定義
 
-// トランスポートを選択して接続
+// トランスポートを選択して接続 (index.ts で定義)
 const transport = new StdioServerTransport();
 await server.connect(transport);
 ```
@@ -209,96 +211,79 @@ server.prompt(
 );
 ```
 
-### 5. トランスポートの設定
-
-MCP サーバーでは、`stdio`トランスポートを使用してコマンドラインツールや直接統合向けに実装します：
-
-```typescript
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-
-const transport = new StdioServerTransport();
-await server.connect(transport);
-```
-
 ## 実装例
 
-以下は、簡単な計算機能を提供する MCP サーバーの完全な実装例です：
+以下は、簡単な計算機能を提供する MCP サーバーの実装例です：
 
 ```typescript
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
-// サーバーの作成
-const server = new McpServer({
-  name: 'Calculator',
-  version: '1.0.0',
-});
+/**
+ * MCPサーバーの設定と実装
+ */
+export const createServer = () => {
+  // サーバーの作成
+  const server = new McpServer({
+    name: 'Calculator',
+    version: '1.0.0',
+  });
 
-// 計算履歴を保存するリソース
-let calculationHistory = '';
+  // 計算履歴を保存するリソース
+  let calculationHistory = '';
 
-server.resource('history', 'calc://history', async (uri) => ({
-  contents: [
-    {
-      uri: uri.href,
-      text: calculationHistory || '計算履歴はまだありません',
-    },
-  ],
-}));
-
-// 計算機能を提供するツール
-server.tool(
-  'calculate',
-  {
-    expression: z.string().describe('計算式（例: 2 + 2、5 * 3 など）'),
-  },
-  async ({ expression }) => {
-    try {
-      // 注意: 実際のアプリケーションでは、eval の使用は避け、安全な計算ライブラリを使用してください
-      const result = eval(expression);
-
-      // 履歴に追加
-      const entry = `${expression} = ${result}\n`;
-      calculationHistory += entry;
-
-      return {
-        content: [{ type: 'text', text: String(result) }],
-      };
-    } catch (error) {
-      return {
-        content: [{ type: 'text', text: `計算エラー: ${error.message}` }],
-        isError: true,
-      };
-    }
-  }
-);
-
-// 計算プロンプトの定義
-server.prompt('solve-math', { problem: z.string() }, ({ problem }) => ({
-  messages: [
-    {
-      role: 'user',
-      content: {
-        type: 'text',
-        text:
-          `以下の数学問題を解いてください：\n\n${problem}\n\n` +
-          `ステップバイステップで解説し、最後に最終的な答えを示してください。`,
+  server.resource('history', 'calc://history', async (uri) => ({
+    contents: [
+      {
+        uri: uri.href,
+        text: calculationHistory || '計算履歴はまだありません',
       },
+    ],
+  }));
+
+  // 計算機能を提供するツール
+  server.tool(
+    'calculate',
+    {
+      expression: z.string().describe('計算式（例: 2 + 2、5 * 3 など）'),
     },
-  ],
-}));
+    async ({ expression }) => {
+      try {
+        // 注意: 実際のアプリケーションでは、eval の使用は避け、安全な計算ライブラリを使用してください
+        const result = eval(expression);
 
-// サーバーを起動する非同期関数
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-}
+        // 履歴に追加
+        const entry = `${expression} = ${result}\n`;
+        calculationHistory += entry;
 
-main().catch((error) => {
-  console.error('Fatal error in main():', error);
-  Deno.exit(1);
-});
+        return {
+          content: [{ type: 'text', text: String(result) }],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `計算エラー: ${error.message}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // 計算プロンプトの定義
+  server.prompt('solve-math', { problem: z.string() }, ({ problem }) => ({
+    messages: [
+      {
+        role: 'user',
+        content: {
+          type: 'text',
+          text:
+            `以下の数学問題を解いてください：\n\n${problem}\n\n` +
+            `ステップバイステップで解説し、最後に最終的な答えを示してください。`,
+        },
+      },
+    ],
+  }));
+  return server;
+};
 ```
 
 ## MCP インスペクターでのテスト
