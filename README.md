@@ -52,14 +52,19 @@ npx @modelcontextprotocol/inspector deno task dev
 
 http://localhost:6274/ で確認
 
-## 参考リンク
+## 参考にしたもの
 
-### 公式
+### MCP 公式
 
 - [Model Context Protocol](https://github.com/modelcontextprotocol)
 - [Building MCP with LLMs - Model Context Protocol](https://modelcontextprotocol.io/tutorials/building-mcp-with-llms)
 
-### 記事
+### MCP 記事
 
 - [MCP サーバをつくって学ぶ | @bc_rikko](https://bcrikko.github.io/til/posts/2025-04-07/what-is-mcp/)
 - [Deno で RooCode 用にローカル MCP サーバーをさっと作る](https://zenn.dev/mizchi/articles/deno-mcp-server)
+
+### Deno
+
+- [mizchi/deno-ai-bestpractice](https://github.com/mizchi/deno-ai-bestpractice)
+- [Deno first でやっていく](https://zenn.dev/mizchi/articles/deno-first-choice)
