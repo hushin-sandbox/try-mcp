@@ -7,7 +7,7 @@ import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { validate } from "uuid";
 
 test("generate-uuid should return a valid UUID v4", async () => {
-  const mcpServer = createServer();
+  const server = createServer();
   const client = new Client({
     name: "test client",
     version: "1.0",
@@ -18,7 +18,7 @@ test("generate-uuid should return a valid UUID v4", async () => {
 
   await Promise.all([
     client.connect(clientTransport),
-    mcpServer.server.connect(serverTransport),
+    server.connect(serverTransport),
   ]);
 
   const result = await client.request(
