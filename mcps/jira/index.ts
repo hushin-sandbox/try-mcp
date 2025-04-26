@@ -8,8 +8,14 @@ const config = validateConfig({
   token: Deno.env.get("JIRA_API_TOKEN"),
 });
 
-const server = createServer(config);
-const transport = new StdioServerTransport();
+async function main() {
+  const server = createServer(config);
+  const transport = new StdioServerTransport();
 
-console.error("Starting Jira MCP Server...");
-await server.connect(transport);
+  await server.connect(transport);
+}
+
+main().catch((error) => {
+  console.error("Fatal error in main():", error);
+  Deno.exit(1);
+});
