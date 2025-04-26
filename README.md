@@ -14,6 +14,10 @@ MCP サーバを作って試す
 ./scripts/generate-mcp-json.ts
 ```
 
+.vscode/mcp.json を開き MCP サーバーを起動（Jira の環境変数を入力）
+
+https://id.atlassian.com/manage-profile/security/api-tokens
+
 ## Usage
 
 VSCode Copilot Chat で試す。
@@ -22,6 +26,10 @@ VSCode Copilot Chat で試す。
 
 ```
 UUID を作成して ai-out/(uuid).md に 「hoge」と書かれたファイルを作って
+```
+
+```
+Jiraのプロジェクト一覧取得して
 ```
 
 ## Development

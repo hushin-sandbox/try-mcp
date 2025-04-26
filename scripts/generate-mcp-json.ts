@@ -2,7 +2,30 @@
 import $ from "jsr:@david/dax@0.43.0";
 
 const mcpConfig = {
-  servers: {} as Record<string, { command: string; args: string[] }>,
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "jira_base_url",
+      "description": "JIRA_BASE_URL (e.g. https://your-domain.atlassian.net)",
+      "password": false,
+    },
+    {
+      "type": "promptString",
+      "id": "jira_email",
+      "description": "JIRA_EMAIL (e.g. your-email@example.com)",
+      "password": false,
+    },
+    {
+      "type": "promptString",
+      "id": "jira_api_token",
+      "description": "JIRA_API_TOKEN",
+      "password": true,
+    },
+  ],
+  servers: {} as Record<
+    string,
+    { command: string; args: string[]; env?: Record<string, string> }
+  >,
 };
 
 // denoの絶対パスを取得
@@ -16,8 +39,16 @@ try {
       const server = entry.name;
       mcpConfig.servers[server] = {
         command: denoPath,
-        args: [`\${workspaceFolder}/mcps/${server}/index.ts`],
+        args: ["-A", `\${workspaceFolder}/mcps/${server}/index.ts`],
       };
+
+      if (server === "jira") {
+        mcpConfig.servers[server].env = {
+          "JIRA_BASE_URL": "${input:jira_base_url}",
+          "JIRA_EMAIL": "${input:jira_email}",
+          "JIRA_API_TOKEN": "${input:jira_api_token}",
+        };
+      }
     }
   }
 } catch (error) {
