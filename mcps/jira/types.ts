@@ -105,6 +105,13 @@ export interface RawIssue {
   };
 }
 
+export interface RawSearchResult {
+  issues: RawIssue[];
+  total: number;
+  maxResults: number;
+  startAt: number;
+}
+
 // Formatted types
 export interface Project {
   key: string;

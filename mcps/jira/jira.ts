@@ -6,6 +6,7 @@ import {
   RawDescriptionContent,
   RawIssue,
   RawProject,
+  RawSearchResult,
   SearchResult,
 } from "./types.ts";
 
@@ -229,7 +230,7 @@ export class JiraApiClient {
   }
 
   async searchIssues(jql: string, maxResults = 50): Promise<SearchResult> {
-    return this.fetch<SearchResult>(
+    const rawResult = await this.fetch<RawSearchResult>(
       "/rest/api/3/search",
       {
         method: "POST",
@@ -240,6 +241,11 @@ export class JiraApiClient {
         }),
       },
     );
+
+    return {
+      issues: rawResult.issues.map((issue) => this.formatIssue(issue)),
+      total: rawResult.total,
+    };
   }
 
   async addComment(issueKey: string, body: string): Promise<void> {
