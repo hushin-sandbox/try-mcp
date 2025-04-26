@@ -1,4 +1,4 @@
-import { Config, Issue, Project, SearchResult } from "./types.ts";
+import { Config, Issue, Project, RawProject, SearchResult } from "./types.ts";
 
 export class JiraApiClient {
   private baseUrl: string;
@@ -36,8 +36,18 @@ export class JiraApiClient {
     return response.json() as Promise<T>;
   }
 
+  private formatProject(rawProject: RawProject): Project {
+    return {
+      id: rawProject.id,
+      key: rawProject.key,
+      name: rawProject.name,
+      url: `${this.baseUrl}/jira/software/projects/${rawProject.key}/summary`,
+    };
+  }
+
   async getProjects(): Promise<Project[]> {
-    return this.fetch<Project[]>("/rest/api/3/project");
+    const rawProjects = await this.fetch<RawProject[]>("/rest/api/3/project");
+    return rawProjects.map((p) => this.formatProject(p));
   }
 
   async getIssue(issueKey: string): Promise<Issue> {

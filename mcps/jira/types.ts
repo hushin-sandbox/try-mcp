@@ -47,11 +47,27 @@ export const CommentAddSchema = z.object({
 
 export type CommentAdd = z.infer<typeof CommentAddSchema>;
 
-// API レスポンス型
+// Raw API Response type
+export interface RawProject {
+  id: string;
+  key: string;
+  name: string;
+  projectTypeKey: string;
+  self: string;
+  simplified: boolean;
+  style: string;
+  isPrivate: boolean;
+  properties: Record<string, unknown>;
+  entityId: string;
+  uuid: string;
+}
+
+// Formatted Project type
 export interface Project {
   id: string;
   key: string;
   name: string;
+  url: string;
 }
 
 export interface Issue {
