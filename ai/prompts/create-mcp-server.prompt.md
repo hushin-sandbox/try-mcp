@@ -106,6 +106,7 @@ await server.connect(transport);
 // シンプルなツールの定義
 server.tool(
   'calculator', // ツール名
+  '四則演算を実行し、計算結果を返します',
   {
     a: z.number(),
     b: z.number(),
@@ -140,20 +141,25 @@ server.tool(
 );
 
 // 外部APIを呼び出すツール
-server.tool('fetch-data', { endpoint: z.string() }, async ({ endpoint }) => {
-  try {
-    const response = await fetch(`https://api.example.com/${endpoint}`);
-    const data = await response.json();
-    return {
-      content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
-    };
-  } catch (error) {
-    return {
-      content: [{ type: 'text', text: `エラー: ${error.message}` }],
-      isError: true,
-    };
+server.tool(
+  'fetch-data',
+  '指定されたエンドポイントからデータを取得します',
+  { endpoint: z.string() },
+  async ({ endpoint }) => {
+    try {
+      const response = await fetch(`https://api.example.com/${endpoint}`);
+      const data = await response.json();
+      return {
+        content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        content: [{ type: 'text', text: `エラー: ${error.message}` }],
+        isError: true,
+      };
+    }
   }
-});
+);
 ```
 
 ## 実装例
@@ -177,6 +183,7 @@ export const createServer = () => {
   // 計算機能を提供するツール
   server.tool(
     'calculate',
+    '数式を評価して計算結果を返します',
     {
       expression: z.string().describe('計算式（例: 2 + 2、5 * 3 など）'),
     },
