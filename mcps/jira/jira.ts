@@ -66,7 +66,11 @@ export class JiraApiClient {
   private convertDescriptionToMarkdown(description?: RawDescription): string {
     if (!description?.content) return "";
 
-    const processContent = (content: RawDescriptionContent[]): string => {
+    const processContent = (
+      content: RawDescriptionContent[],
+      indent = 0,
+    ): string => {
+      const spaces = " ".repeat(indent);
       return content.map((node) => {
         switch (node.type) {
           case "heading": {
@@ -77,10 +81,9 @@ export class JiraApiClient {
             return `${"#".repeat(level)} ${headingText}\n\n`;
           }
 
-          case "paragraph": {
+          case "paragraph":
             if (!node.content) return "\n";
-            return `${processContent(node.content)}\n\n`;
-          }
+            return `${spaces}${processContent(node.content)}\n\n`;
 
           case "text": {
             let text = node.text || "";
@@ -105,26 +108,30 @@ export class JiraApiClient {
           case "bulletList":
             return node.content
               ? node.content.map((item) =>
-                `- ${processContent(item.content || []).trim()}`
+                `${spaces}- ${
+                  processContent(item.content || [], indent + 2).trim()
+                }`
               ).join("\n") + "\n\n"
               : "";
 
           case "orderedList":
             return node.content
               ? node.content.map((item, index) =>
-                `${index + 1}. ${processContent(item.content || []).trim()}`
+                `${spaces}${index + 1}. ${
+                  processContent(item.content || [], indent + 2).trim()
+                }`
               ).join("\n") + "\n\n"
               : "";
 
           case "listItem":
-            return node.content ? processContent(node.content) : "";
+            return node.content ? processContent(node.content, indent) : "";
 
           case "taskList":
             return node.content
               ? node.content.map((item) => {
                 const state = item.attrs?.state === "DONE" ? "x" : " ";
-                return `- [${state}] ${
-                  processContent(item.content || []).trim()
+                return `${spaces}- [${state}] ${
+                  processContent(item.content || [], indent + 2).trim()
                 }`;
               }).join("\n") + "\n\n"
               : "";
