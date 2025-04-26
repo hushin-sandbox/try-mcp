@@ -48,8 +48,7 @@ MCP サーバーを実装する際、ユーザーの要件が曖昧な場合は�
 
 ### ディレクトリ構成例
 
-新しい MCP サーバーを作成する場合は、以下のような構成にします。
-`./scripts/create-mcp-template.ts --name <mcp-server-name>` で雛形を生成できます。
+新しい MCP サーバーを作成する場合は、以下のような構成にします。後述するスクリプトで雛形が生成されます。
 
 ```
 mcps/
@@ -62,6 +61,19 @@ mcps/
 ```
 
 参考実装として mcps/uuid/ があります。
+
+### 新しい MCP サーバーの作成手順
+
+1. 要件の明確化
+2. `./scripts/create-mcp-template.ts --name <mcp-server-name>` で雛形を生成
+3. `cd mcps/<mcp-server-name>`
+4. ファイルの中身を確認する
+5. README.md を編集
+6. server.ts を編集
+7. パッケージを使うとき、必要に応じて `deno add jsr:@david/dax@0.42.0` のようにして、 `deno.json` に依存を追加する。
+8. 実装が終わったら `deno check .` で TypeScript 構文チェック
+9. server.test.ts を編集しテストを書き、 `deno test` で実行
+10. MCP インスペクターでのテスト（後述）
 
 ## パターンの説明
 

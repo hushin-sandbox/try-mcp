@@ -84,8 +84,11 @@ export const createServer = () => {
 const serverTestTsContent = `import { expect } from "@std/expect";
 import { test } from "@std/testing/bdd";
 import { createServer } from "./server.ts";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
-test("${mcpName}", () => {
+test("${mcpName}", async () => {
   const server = createServer();
   const client = new Client({
     name: "test client",
@@ -102,6 +105,9 @@ test("${mcpName}", () => {
 
   const result = await client.callTool({
     name: "", // TODO 実装したtoolの名前
+    arguments: {
+      input: "Hello, world!", // TODO 書き換え
+    },
   });
 
   const toolResult = result.result as CallToolResult;
