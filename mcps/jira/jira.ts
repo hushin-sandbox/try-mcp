@@ -59,7 +59,7 @@ export class JiraApiClient {
   }
 
   private convertDescriptionToMarkdown(description?: RawDescription): string {
-    if (!description?.content) return "";
+    if (!description?.content) return "[未取得]";
 
     const processContent = (
       content: RawDescriptionContent[],
