@@ -82,15 +82,15 @@ import * as cbor from 'https://deno.land/x/cbor';
 
 モジュールモードはディレクトリの下で複数のファイルで構成される。
 
-MCP サーバー実装例
+例
 
 ```
 xxx/
   deno.json
   deno.lock
-  index.ts  - サーバー実行
-  server.ts - サーバーの実装
-  server.test.ts - サーバー内のロジックをテスト
+  index.ts
+  lib.ts
+  lib.test.ts
 ```
 
 モジュールモードではスクリプトモードと違って、ライブラリの参照に `jsr:` や `npm:` を推奨しない。
