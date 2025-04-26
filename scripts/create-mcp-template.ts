@@ -115,15 +115,6 @@ test("${mcpName}", async () => {
 });
 `;
 
-const readmeContent = `# ${mcpName}
-
-MCPサーバーの説明をここに書く
-
-## 機能
-
-機能をここに書く
-`;
-
 // ディレクトリ作成
 await $`mkdir -p ${targetDir}`;
 
@@ -135,7 +126,6 @@ await Deno.writeTextFile(
 await Deno.writeTextFile(`${targetDir}/index.ts`, indexTsContent);
 await Deno.writeTextFile(`${targetDir}/server.ts`, serverTsContent);
 await Deno.writeTextFile(`${targetDir}/server.test.ts`, serverTestTsContent);
-await Deno.writeTextFile(`${targetDir}/README.md`, readmeContent);
 
 console.log(`✨ Created MCP server template in ${targetDir}`);
 console.log("Next steps:");

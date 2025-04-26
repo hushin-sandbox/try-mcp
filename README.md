@@ -16,7 +16,8 @@ MCP サーバを作って試す
 
 .vscode/mcp.json を開き MCP サーバーを起動（Jira の環境変数を入力）
 
-https://id.atlassian.com/manage-profile/security/api-tokens
+- `JIRA_API_TOKEN` - Jira Cloud の API トークン
+  - https://id.atlassian.com/manage-profile/security/api-tokens から取得可能
 
 ## Usage
 
