@@ -1,6 +1,5 @@
 {
   "tasks": {
-    "start": "deno run index.ts",
     "dev": "deno run --watch index.ts"
   },
   "imports": {

@@ -1,8 +1,8 @@
 {
   "servers": {
     "uuid": {
-      "command": "/path/node",
-      "args": ["${workspaceFolder}/mcps/uuid/dist/index.js"]
+      "command": "/path/deno",
+      "args": ["${workspaceFolder}/mcps/uuid/index.ts"]
     }
   }
 }

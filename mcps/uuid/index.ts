@@ -8,9 +8,7 @@ async function main() {
   await server.connect(transport);
 }
 
-if (import.meta.main) {
-  main().catch((error) => {
-    console.error("Fatal error in main():", error);
-    Deno.exit(1);
-  });
-}
+main().catch((error) => {
+  console.error("Fatal error in main():", error);
+  Deno.exit(1);
+});
