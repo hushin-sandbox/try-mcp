@@ -158,6 +158,8 @@ export class JiraApiClient {
         ),
         issuetype: rawIssue.fields?.issuetype?.name,
         status: rawIssue.fields?.status?.name,
+        updated: rawIssue.fields?.updated,
+        assignee: rawIssue.fields?.assignee?.displayName,
         parent: rawIssue.fields.parent
           ? this.formatIssue(rawIssue.fields.parent)
           : undefined,
@@ -169,6 +171,7 @@ export class JiraApiClient {
     const rawIssue = await this.fetch<RawIssue>(
       `/rest/api/3/issue/${issueKey}`,
     );
+    console.error(JSON.stringify(rawIssue, null, 2));
     return this.formatIssue(rawIssue);
   }
 

@@ -92,6 +92,10 @@ export interface RawDescription {
   content: RawDescriptionContent[];
 }
 
+export interface RawAssignee {
+  displayName: string;
+}
+
 export interface RawIssue {
   id: string;
   key: string;
@@ -102,6 +106,8 @@ export interface RawIssue {
     status?: RawStatus;
     issuetype?: RawIssueType;
     parent?: RawIssue;
+    updated?: string;
+    assignee?: RawAssignee;
   };
 }
 
@@ -128,6 +134,8 @@ export interface Issue {
     status?: string;
     issuetype?: string;
     parent?: Issue;
+    updated?: string;
+    assignee?: string;
   };
 }
 
