@@ -1,8 +1,0 @@
-{
-  "servers": {
-    "uuid": {
-      "command": "/path/deno",
-      "args": ["${workspaceFolder}/mcps/uuid/index.ts"]
-    }
-  }
-}

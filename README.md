@@ -11,9 +11,7 @@ MCP サーバを作って試す
 ### .vscode/mcp.json
 
 ```sh
-cp .vscode/mcp.example.json  .vscode/mcp.json
-code .vscode/mcp.json
-# deno のパスを絶対パスに変える
+./scripts/generate-mcp-json.ts
 ```
 
 ## Usage
