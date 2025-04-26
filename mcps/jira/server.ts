@@ -16,12 +16,11 @@ export const createServer = (config: Config) => {
     version: "1.0.0",
   });
 
-  // Jira APIクライアントの初期化
   const jiraClient = new JiraApiClient(config);
 
-  // プロジェクト一覧取得ツール
   server.tool(
     "list-projects",
+    "プロジェクト一覧を取得",
     {},
     async () => {
       try {
@@ -49,9 +48,9 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // 課題取得ツール
   server.tool(
     "get-issue",
+    "特定の課題の詳細を取得",
     { issueKey: z.string() },
     async (args) => {
       try {
@@ -79,9 +78,9 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // 課題作成ツール
   server.tool(
     "create-issue",
+    "課題作成",
     IssueCreateSchema.shape,
     async (args, _extra) => {
       try {
@@ -115,9 +114,9 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // 課題更新ツール
   server.tool(
     "update-issue",
+    "既存の課題を更新",
     IssueUpdateSchema.shape,
     async (args, _extra) => {
       try {
@@ -150,9 +149,9 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // 課題検索ツール
   server.tool(
     "search-issues",
+    "課題検索",
     IssueSearchSchema.shape,
     async (args, _extra) => {
       try {
@@ -181,9 +180,9 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // コメント追加ツール
   server.tool(
     "add-comment",
+    "課題にコメントを追加",
     CommentAddSchema.shape,
     async (args, _extra) => {
       try {
@@ -212,51 +211,9 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // ヘルプツール
-  server.tool(
-    "help",
-    {},
-    async () => ({
-      content: [
-        {
-          type: "text",
-          text: "使用可能なツール:\n\n" +
-            "1. list-projects: プロジェクト一覧を取得\n" +
-            "2. get-issue: 特定の課題の詳細を取得\n" +
-            "3. create-issue: 新しい課題を作成\n" +
-            "4. update-issue: 既存の課題を更新\n" +
-            "5. search-issues: JQLを使用して課題を検索\n" +
-            "6. add-comment: 課題にコメントを追加\n\n" +
-            "各ツールの使用方法については、個別のヘルプメッセージを参照してください。",
-        },
-      ],
-    }),
-  );
-
-  // 課題作成ヘルプツール
-  server.tool(
-    "help-create-issue",
-    {},
-    async () => ({
-      content: [
-        {
-          type: "text",
-          text: "課題作成ツールの使用方法:\n\n" +
-            "必要なパラメータ:\n" +
-            "1. projectKey: プロジェクトキー\n" +
-            "2. summary: 課題のタイトル\n" +
-            "3. description: 課題の説明（オプション）\n" +
-            "4. issueType: 課題タイプ（Task, Bug, Story など）\n\n" +
-            "例:\n" +
-            '{"projectKey": "PROJ", "summary": "新機能の実装", "issueType": "Task", "description": "詳細な説明をここに記述"}',
-        },
-      ],
-    }),
-  );
-
-  // 課題検索ヘルプツール
   server.tool(
     "help-search-issues",
+    "課題検索ツールの使用方法、JQLの例",
     {},
     async () => ({
       content: [
