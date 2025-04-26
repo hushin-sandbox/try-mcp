@@ -1,35 +1,29 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import {
-  v4 as uuidv4,
-  v1 as uuidv1,
-  v5 as uuidv5,
-  v3 as uuidv3,
-  validate,
-} from 'uuid';
-import { z } from 'zod';
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { v1 as uuidv1, v3 as uuidv3, v5 as uuidv5, validate } from "uuid";
+import { z } from "zod";
 
 /**
  * UUID生成用MCPサーバーの設定と実装
  */
-export const createUuidServer = () => {
+export const createServer = () => {
   // MCPサーバーの初期化
   const server = new McpServer({
-    name: 'UUID Generator',
-    version: '1.0.0',
-    description: 'シンプルなUUID生成ツールを提供するMCPサーバー',
+    name: "UUID Generator",
+    version: "1.0.0",
+    description: "シンプルなUUID生成ツールを提供するMCPサーバー",
   });
 
   // UUIDに関する基本情報リソースの追加
   server.resource(
-    'uuid-info',
-    'uuid-info://docs',
+    "uuid-info",
+    "uuid-info://docs",
     {
-      description: 'UUIDの基本情報と各バージョンの説明',
+      description: "UUIDの基本情報と各バージョンの説明",
     },
     async () => ({
       contents: [
         {
-          uri: 'uuid-info://docs',
+          uri: "uuid-info://docs",
           text: `# UUID (Universally Unique Identifier)
 
 UUIDは、グローバルに一意性が保証される識別子です。異なるバージョンがあり、それぞれ特性が異なります。
@@ -49,20 +43,20 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
 - ファイル名やリソース識別子`,
         },
       ],
-    })
+    }),
   );
 
   // 基本的なUUID v4を生成するツール
   server.tool(
-    'generate-uuid',
-    'パラメータなしでランダムなUUID v4を生成します',
+    "generate-uuid",
+    "パラメータなしでランダムなUUID v4を生成します",
     async () => {
       try {
-        const uuid = uuidv4();
+        const uuid = crypto.randomUUID();
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: uuid,
             },
           ],
@@ -71,7 +65,7 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `UUIDの生成に失敗しました: ${
                 error instanceof Error ? error.message : String(error)
               }`,
@@ -80,44 +74,44 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
           isError: true,
         };
       }
-    }
+    },
   );
 
   // カスタムUUIDを生成するツール（バージョンやオプションの指定が可能）
   server.tool(
-    'generate-custom-uuid',
-    'さまざまなオプションでUUIDを生成します',
+    "generate-custom-uuid",
+    "さまざまなオプションでUUIDを生成します",
     {
       version: z
-        .enum(['v1', 'v3', 'v4', 'v5'])
-        .default('v4')
-        .describe('生成するUUIDのバージョン'),
-      namespace: z.string().optional().describe('v3/v5のみ：名前空間UUID'),
-      name: z.string().optional().describe('v3/v5のみ：名前文字列'),
+        .enum(["v1", "v3", "v4", "v5"])
+        .default("v4")
+        .describe("生成するUUIDのバージョン"),
+      namespace: z.string().optional().describe("v3/v5のみ：名前空間UUID"),
+      name: z.string().optional().describe("v3/v5のみ：名前文字列"),
       uppercase: z
         .boolean()
         .default(false)
-        .describe('大文字で出力するかどうか'),
+        .describe("大文字で出力するかどうか"),
       noDashes: z
         .boolean()
         .default(false)
-        .describe('ハイフンなしで出力するかどうか'),
+        .describe("ハイフンなしで出力するかどうか"),
     },
     async (params) => {
       try {
         let uuid: string;
 
         switch (params.version) {
-          case 'v1':
+          case "v1":
             uuid = uuidv1();
             break;
-          case 'v3':
+          case "v3":
             if (!params.namespace || !params.name) {
               return {
                 content: [
                   {
-                    type: 'text',
-                    text: 'UUID v3の生成には、namespaceとnameの両方が必要です',
+                    type: "text",
+                    text: "UUID v3の生成には、namespaceとnameの両方が必要です",
                   },
                 ],
                 isError: true,
@@ -127,25 +121,25 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
               return {
                 content: [
                   {
-                    type: 'text',
-                    text: '無効な名前空間UUIDが指定されました',
+                    type: "text",
+                    text: "無効な名前空間UUIDが指定されました",
                   },
                 ],
                 isError: true,
               };
             }
-            uuid = uuidv3(params.name, params.namespace);
+            uuid = await uuidv3(params.name, params.namespace);
             break;
-          case 'v4':
-            uuid = uuidv4();
+          case "v4":
+            uuid = crypto.randomUUID();
             break;
-          case 'v5':
+          case "v5":
             if (!params.namespace || !params.name) {
               return {
                 content: [
                   {
-                    type: 'text',
-                    text: 'UUID v5の生成には、namespaceとnameの両方が必要です',
+                    type: "text",
+                    text: "UUID v5の生成には、namespaceとnameの両方が必要です",
                   },
                 ],
                 isError: true,
@@ -155,21 +149,21 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
               return {
                 content: [
                   {
-                    type: 'text',
-                    text: '無効な名前空間UUIDが指定されました',
+                    type: "text",
+                    text: "無効な名前空間UUIDが指定されました",
                   },
                 ],
                 isError: true,
               };
             }
-            uuid = uuidv5(params.name, params.namespace);
+            uuid = await uuidv5(params.name, params.namespace);
             break;
           default:
             return {
               content: [
                 {
-                  type: 'text',
-                  text: 'サポートされていないUUIDバージョンです',
+                  type: "text",
+                  text: "サポートされていないUUIDバージョンです",
                 },
               ],
               isError: true,
@@ -182,13 +176,13 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
         }
 
         if (params.noDashes) {
-          uuid = uuid.replace(/-/g, '');
+          uuid = uuid.replace(/-/g, "");
         }
 
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: uuid,
             },
           ],
@@ -197,7 +191,7 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `UUIDの生成に失敗しました: ${
                 error instanceof Error ? error.message : String(error)
               }`,
@@ -206,15 +200,15 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
           isError: true,
         };
       }
-    }
+    },
   );
 
   // UUIDの検証ツール
   server.tool(
-    'validate-uuid',
-    '文字列がUUIDとして有効かどうかを検証します',
+    "validate-uuid",
+    "文字列がUUIDとして有効かどうかを検証します",
     {
-      uuid: z.string().describe('検証するUUID文字列'),
+      uuid: z.string().describe("検証するUUID文字列"),
     },
     async (params) => {
       try {
@@ -222,16 +216,16 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: JSON.stringify(
                 {
                   isValid,
                   message: isValid
-                    ? '有効なUUID形式です'
-                    : '無効なUUID形式です',
+                    ? "有効なUUID形式です"
+                    : "無効なUUID形式です",
                 },
                 null,
-                2
+                2,
               ),
             },
           ],
@@ -240,7 +234,7 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `UUIDの検証に失敗しました: ${
                 error instanceof Error ? error.message : String(error)
               }`,
@@ -249,7 +243,7 @@ UUIDは、グローバルに一意性が保証される識別子です。異な�
           isError: true,
         };
       }
-    }
+    },
   );
 
   return server;

@@ -44,80 +44,22 @@ MCP サーバーを実装する際、ユーザーの要件が曖昧な場合は�
 ## プロジェクト構成
 
 このプロジェクトでは、MCP サーバーの実装は `mcps/` ディレクトリ配下に機能単位でディレクトリを作成して管理します。
-各 MCP サーバーは独立した npm パッケージとして実装します。
+各 MCP サーバーは独立した deno project として実装します。
 
 ### ディレクトリ構成例
 
-新しい MCP サーバーを作成する場合は、以下のような構成を参考にしてください：
+新しい MCP サーバーを作成する場合は、以下のような構成にする
+`./scripts/create-mcp-template.ts --name <mcp-server-name>` で雛形を生成できます。
 
 ```
 mcps/
-  your-service/
-    package.json
+  mcp-server-name/
+    deno.json
     README.md
-    tsconfig.json
-    src/
-      index.ts   # エントリーポイント
-      server.ts  # MCPサーバーの実装
+    index.ts       # エントリーポイント
+    server.ts      # MCPサーバーの実装
+    server.test.ts # MCPサーバーのテスト
 ```
-
-### 新しい MCP サーバーの作成手順
-
-1. `mcps/` 配下に新しいディレクトリを作成
-
-   ```bash
-   mkdir mcps/your-service
-   cd mcps/your-service
-   ```
-
-2. npm プロジェクトを初期化
-
-   ```bash
-   npm init -y
-   ```
-
-   package 名は `mcp-(name)` にします
-
-3. 必要な依存関係をインストール
-
-   ```bash
-   npm install @modelcontextprotocol/sdk zod
-   npm install --save-dev typescript @types/node
-   ```
-
-4. TypeScript の設定を行う（`tsconfig.json` を作成）
-
-   ```json
-   {
-     "compilerOptions": {
-       "target": "ES2020",
-       "module": "NodeNext",
-       "moduleResolution": "NodeNext",
-       "esModuleInterop": true,
-       "strict": true,
-       "skipLibCheck": true,
-       "forceConsistentCasingInFileNames": true,
-       "outDir": "dist"
-     },
-     "include": ["src"]
-   }
-   ```
-
-5. 基本的なファイル構造を作成
-
-   ```bash
-   mkdir src
-   touch src/index.ts src/server.ts
-   ```
-
-6. package.json の scripts 追加
-
-   ```
-    "build": "tsc",
-    "start": "node dist/index.js",
-   ```
-
-7. README の作成
 
 ## パターンの説明
 
@@ -355,7 +297,7 @@ async function main() {
 
 main().catch((error) => {
   console.error('Fatal error in main():', error);
-  process.exit(1);
+  Deno.exit(1);
 });
 ```
 
@@ -364,7 +306,7 @@ main().catch((error) => {
 MCP インスペクターを使用して、サーバーの機能をテストできます：
 
 ```bash
-npx @modelcontextprotocol/inspector node dist/index.js
+npx @modelcontextprotocol/inspector deno task dev
 ```
 
 ユーザーに http://localhost:6274/ で確認を促します。
@@ -470,3 +412,10 @@ server.tool('unsafeRead', { path: z.string() }, async ({ path }) => {
 8. **パフォーマンス考慮**：重い処理はバックグラウンドで実行し、応答性を維持する
 9. **統一されたレスポンスフォーマット**：一貫したレスポンスフォーマットを維持する
 10. **進捗報告**：長時間実行される操作では、進捗状況を報告する
+
+## 参考資料
+
+より詳細に知りたいときは下記資料を参照すること:
+
+- https://modelcontextprotocol.io/llms-full.txt
+- https://raw.githubusercontent.com/modelcontextprotocol/typescript-sdk/refs/heads/main/README.md
