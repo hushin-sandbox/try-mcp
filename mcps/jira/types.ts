@@ -107,14 +107,12 @@ export interface RawIssue {
 
 // Formatted types
 export interface Project {
-  id: string;
   key: string;
   name: string;
   url: string;
 }
 
 export interface IssueType {
-  id: string;
   name: string;
   description?: string;
   hierarchyLevel: number;
@@ -126,7 +124,6 @@ export interface Status {
 }
 
 export interface Issue {
-  id: string;
   key: string;
   url: string;
   fields: {

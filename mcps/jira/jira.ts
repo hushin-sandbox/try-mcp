@@ -51,7 +51,6 @@ export class JiraApiClient {
 
   private formatProject(rawProject: RawProject): Project {
     return {
-      id: rawProject.id,
       key: rawProject.key,
       name: rawProject.name,
       url: `${this.baseUrl}/jira/software/projects/${rawProject.key}/summary`,
@@ -157,7 +156,6 @@ export class JiraApiClient {
     ): IssueType | undefined => {
       if (!rawType) return undefined;
       return {
-        id: rawType.id,
         name: rawType.name,
         description: rawType.description,
         hierarchyLevel: rawType.hierarchyLevel,
@@ -173,7 +171,6 @@ export class JiraApiClient {
     };
 
     return {
-      id: rawIssue.id,
       key: rawIssue.key,
       url: `${this.baseUrl}/browse/${rawIssue.key}`,
       fields: {
