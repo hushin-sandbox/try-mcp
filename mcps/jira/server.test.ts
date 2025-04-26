@@ -3,9 +3,9 @@ import { test } from "@std/testing/bdd";
 import { createServer } from "./server.ts";
 
 const mockConfig = {
-  host: "https://your-domain.atlassian.net",
+  baseUrl: "https://your-domain.atlassian.net",
   email: "test@example.com",
-  token: "dummy-token",
+  apiToken: "dummy-token",
 };
 
 test("server creates successfully", () => {
