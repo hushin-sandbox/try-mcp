@@ -1,4 +1,17 @@
-import { Config, Issue, Project, RawProject, SearchResult } from "./types.ts";
+import {
+  Config,
+  Issue,
+  IssueType,
+  Project,
+  RawDescription,
+  RawDescriptionContent,
+  RawIssue,
+  RawIssueType,
+  RawProject,
+  RawStatus,
+  SearchResult,
+  Status,
+} from "./types.ts";
 
 export class JiraApiClient {
   private baseUrl: string;
@@ -50,8 +63,131 @@ export class JiraApiClient {
     return rawProjects.map((p) => this.formatProject(p));
   }
 
+  private convertDescriptionToMarkdown(description?: RawDescription): string {
+    if (!description?.content) return "";
+
+    const processContent = (content: RawDescriptionContent[]): string => {
+      return content.map((node) => {
+        switch (node.type) {
+          case "heading": {
+            const level = node.attrs?.level as number || 1;
+            const headingText = node.content
+              ? processContent(node.content)
+              : "";
+            return `${"#".repeat(level)} ${headingText}\n\n`;
+          }
+
+          case "paragraph": {
+            if (!node.content) return "\n";
+            return `${processContent(node.content)}\n\n`;
+          }
+
+          case "text": {
+            let text = node.text || "";
+            if (node.marks) {
+              for (const mark of node.marks) {
+                switch (mark.type) {
+                  case "strong":
+                    text = `**${text}**`;
+                    break;
+                  case "em":
+                    text = `*${text}*`;
+                    break;
+                  case "strike":
+                    text = `~~${text}~~`;
+                    break;
+                }
+              }
+            }
+            return text;
+          }
+
+          case "bulletList":
+            return node.content
+              ? node.content.map((item) =>
+                `- ${processContent(item.content || []).trim()}`
+              ).join("\n") + "\n\n"
+              : "";
+
+          case "orderedList":
+            return node.content
+              ? node.content.map((item, index) =>
+                `${index + 1}. ${processContent(item.content || []).trim()}`
+              ).join("\n") + "\n\n"
+              : "";
+
+          case "listItem":
+            return node.content ? processContent(node.content) : "";
+
+          case "taskList":
+            return node.content
+              ? node.content.map((item) => {
+                const state = item.attrs?.state === "DONE" ? "x" : " ";
+                return `- [${state}] ${
+                  processContent(item.content || []).trim()
+                }`;
+              }).join("\n") + "\n\n"
+              : "";
+
+          case "mention":
+            return `${node.attrs?.text || ""}`;
+
+          case "emoji":
+            return node.attrs?.text || "";
+
+          default:
+            return node.text || "";
+        }
+      }).join("");
+    };
+
+    return processContent(description.content).trim();
+  }
+
+  private formatIssue(rawIssue: RawIssue): Issue {
+    const formatIssueType = (
+      rawType?: RawIssueType,
+    ): IssueType | undefined => {
+      if (!rawType) return undefined;
+      return {
+        id: rawType.id,
+        name: rawType.name,
+        description: rawType.description,
+        hierarchyLevel: rawType.hierarchyLevel,
+      };
+    };
+
+    const formatStatus = (rawStatus?: RawStatus): Status | undefined => {
+      if (!rawStatus) return undefined;
+      return {
+        name: rawStatus.name,
+        category: rawStatus.statusCategory.key,
+      };
+    };
+
+    return {
+      id: rawIssue.id,
+      key: rawIssue.key,
+      url: `${this.baseUrl}/browse/${rawIssue.key}`,
+      fields: {
+        summary: rawIssue.fields.summary,
+        description: this.convertDescriptionToMarkdown(
+          rawIssue.fields.description,
+        ),
+        issuetype: formatIssueType(rawIssue.fields.issuetype),
+        status: formatStatus(rawIssue.fields.status),
+        parent: rawIssue.fields.parent
+          ? this.formatIssue(rawIssue.fields.parent)
+          : undefined,
+      },
+    };
+  }
+
   async getIssue(issueKey: string): Promise<Issue> {
-    return this.fetch<Issue>(`/rest/api/3/issue/${issueKey}`);
+    const rawIssue = await this.fetch<RawIssue>(
+      `/rest/api/3/issue/${issueKey}`,
+    );
+    return this.formatIssue(rawIssue);
   }
 
   async createIssue(

@@ -47,7 +47,7 @@ export const CommentAddSchema = z.object({
 
 export type CommentAdd = z.infer<typeof CommentAddSchema>;
 
-// Raw API Response type
+// Raw API Response types
 export interface RawProject {
   id: string;
   key: string;
@@ -62,7 +62,50 @@ export interface RawProject {
   uuid: string;
 }
 
-// Formatted Project type
+export interface RawIssueType {
+  id: string;
+  name: string;
+  description?: string;
+  hierarchyLevel: number;
+}
+
+export interface RawStatus {
+  name: string;
+  id: string;
+  statusCategory: {
+    key: string;
+    name: string;
+  };
+}
+
+export interface RawDescriptionContent {
+  type: string;
+  content?: RawDescriptionContent[];
+  text?: string;
+  attrs?: Record<string, unknown>;
+  marks?: Array<{ type: string }>;
+}
+
+export interface RawDescription {
+  type: "doc";
+  version: number;
+  content: RawDescriptionContent[];
+}
+
+export interface RawIssue {
+  id: string;
+  key: string;
+  self: string;
+  fields: {
+    summary: string;
+    description?: RawDescription;
+    status?: RawStatus;
+    issuetype?: RawIssueType;
+    parent?: RawIssue;
+  };
+}
+
+// Formatted types
 export interface Project {
   id: string;
   key: string;
@@ -70,15 +113,28 @@ export interface Project {
   url: string;
 }
 
+export interface IssueType {
+  id: string;
+  name: string;
+  description?: string;
+  hierarchyLevel: number;
+}
+
+export interface Status {
+  name: string;
+  category: string;
+}
+
 export interface Issue {
   id: string;
   key: string;
+  url: string;
   fields: {
     summary: string;
     description?: string;
-    status?: {
-      name: string;
-    };
+    status?: Status;
+    issuetype?: IssueType;
+    parent?: Issue;
   };
 }
 
