@@ -194,6 +194,10 @@ test("formats Issue with parent", () => {
           name: "To Do",
         },
       },
+      updated: "2025-04-26T10:30:00.000+0000",
+      assignee: {
+        displayName: "taro",
+      },
       parent: {
         id: "10000",
         key: "SMP-1",
@@ -219,15 +223,15 @@ test("formats Issue with parent", () => {
     url: "https://example.atlassian.net/browse/SMP-6",
     fields: {
       summary: "サンプル タスク 4",
-      description: "[未取得]",
       issuetype: "タスク",
       status: "To Do",
+      updated: "2025-04-26T10:30:00.000+0000",
+      assignee: "taro",
       parent: {
         key: "SMP-1",
         url: "https://example.atlassian.net/browse/SMP-1",
         fields: {
           summary: "サンプル エピック 2",
-          description: "[未取得]",
           issuetype: "エピック",
         },
       },
