@@ -60,7 +60,7 @@ export class JiraApiClient {
   }
 
   private convertDescriptionToMarkdown(description?: RawDescription): string {
-    if (!description?.content) return "[未取得]";
+    if (!description?.content) return "";
 
     const processContent = (
       content: RawDescriptionContent[],
@@ -153,9 +153,11 @@ export class JiraApiClient {
       url: `${this.baseUrl}/browse/${rawIssue.key}`,
       fields: {
         summary: rawIssue.fields.summary,
-        description: this.convertDescriptionToMarkdown(
-          rawIssue.fields.description,
-        ),
+        description: rawIssue.fields.description
+          ? this.convertDescriptionToMarkdown(
+            rawIssue.fields.description,
+          )
+          : undefined,
         issuetype: rawIssue.fields?.issuetype?.name,
         status: rawIssue.fields?.status?.name,
         updated: rawIssue.fields?.updated,
