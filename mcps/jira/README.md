@@ -24,4 +24,9 @@ Jira Cloud API を使用して課題管理機能を提供する MCP サーバー
 
 ## 設定
 
-.env を作る必要あり
+以下の環境変数を設定する必要があります：
+
+- `JIRA_BASE_URL` - Jira Cloud のベース URL（例：https://your-domain.atlassian.net）
+- `JIRA_EMAIL` - Jira Cloud のメールアドレス
+- `JIRA_API_TOKEN` - Jira Cloud の API トークン
+  - https://id.atlassian.com/manage-profile/security/api-tokens から取得可能

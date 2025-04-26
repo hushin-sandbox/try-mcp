@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { JiraApiClient } from "./jira.ts";
 import {
   CommentAddSchema,
@@ -19,17 +19,17 @@ export const createServer = (config: Config) => {
   // Jira APIクライアントの初期化
   const jiraClient = new JiraApiClient(config);
 
-  // プロジェクト一覧リソース
-  server.resource(
-    "projects",
-    "jira://projects",
-    async (uri) => {
+  // プロジェクト一覧取得ツール
+  server.tool(
+    "list-projects",
+    {},
+    async () => {
       try {
         const projects = await jiraClient.getProjects();
         return {
-          contents: [
+          content: [
             {
-              uri: uri.href,
+              type: "text",
               text: JSON.stringify(projects, null, 2),
             },
           ],
@@ -37,9 +37,9 @@ export const createServer = (config: Config) => {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         return {
-          contents: [
+          content: [
             {
-              uri: uri.href,
+              type: "text",
               text: `Error: ${message}`,
             },
           ],
@@ -49,48 +49,17 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // 課題リソース (検索結果)
-  server.resource(
-    "issues",
-    new ResourceTemplate("jira://issues/{jql}", { list: undefined }),
-    async (uri, params) => {
+  // 課題取得ツール
+  server.tool(
+    "get-issue",
+    { issueKey: z.string() },
+    async (args) => {
       try {
-        const jql = decodeURIComponent(params.jql as string);
-        const issues = await jiraClient.searchIssues(jql);
+        const issue = await jiraClient.getIssue(args.issueKey);
         return {
-          contents: [
+          content: [
             {
-              uri: uri.href,
-              text: JSON.stringify(issues, null, 2),
-            },
-          ],
-        };
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : String(error);
-        return {
-          contents: [
-            {
-              uri: uri.href,
-              text: `Error: ${message}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  );
-
-  // 課題詳細リソース
-  server.resource(
-    "issue",
-    new ResourceTemplate("jira://issue/{issueKey}", { list: undefined }),
-    async (uri, params) => {
-      try {
-        const issue = await jiraClient.getIssue(params.issueKey as string);
-        return {
-          contents: [
-            {
-              uri: uri.href,
+              type: "text",
               text: JSON.stringify(issue, null, 2),
             },
           ],
@@ -98,9 +67,9 @@ export const createServer = (config: Config) => {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         return {
-          contents: [
+          content: [
             {
-              uri: uri.href,
+              type: "text",
               text: `Error: ${message}`,
             },
           ],
@@ -243,46 +212,64 @@ export const createServer = (config: Config) => {
     },
   );
 
-  // プロンプト：課題作成支援
-  server.prompt(
-    "create-issue-help",
+  // ヘルプツール
+  server.tool(
+    "help",
     {},
     async () => ({
-      messages: [
+      content: [
         {
-          role: "assistant",
-          content: {
-            type: "text",
-            text:
-              "Jira課題の作成を支援します。以下の情報を含めて説明してください：\n" +
-              "1. プロジェクトキー\n" +
-              "2. 課題のタイトル\n" +
-              "3. 課題の説明\n" +
-              "4. 課題タイプ（Task, Bug, Story など）",
-          },
+          type: "text",
+          text: "使用可能なツール:\n\n" +
+            "1. list-projects: プロジェクト一覧を取得\n" +
+            "2. get-issue: 特定の課題の詳細を取得\n" +
+            "3. create-issue: 新しい課題を作成\n" +
+            "4. update-issue: 既存の課題を更新\n" +
+            "5. search-issues: JQLを使用して課題を検索\n" +
+            "6. add-comment: 課題にコメントを追加\n\n" +
+            "各ツールの使用方法については、個別のヘルプメッセージを参照してください。",
         },
       ],
     }),
   );
 
-  // プロンプト：課題検索支援
-  server.prompt(
-    "search-issues-help",
+  // 課題作成ヘルプツール
+  server.tool(
+    "help-create-issue",
     {},
     async () => ({
-      messages: [
+      content: [
         {
-          role: "assistant",
-          content: {
-            type: "text",
-            text:
-              "Jira課題の検索を支援します。以下の条件を含めて説明してください：\n" +
-              "1. プロジェクト\n" +
-              "2. ステータス\n" +
-              "3. 優先度\n" +
-              "4. アサイン状況\n" +
-              "5. その他の条件",
-          },
+          type: "text",
+          text: "課題作成ツールの使用方法:\n\n" +
+            "必要なパラメータ:\n" +
+            "1. projectKey: プロジェクトキー\n" +
+            "2. summary: 課題のタイトル\n" +
+            "3. description: 課題の説明（オプション）\n" +
+            "4. issueType: 課題タイプ（Task, Bug, Story など）\n\n" +
+            "例:\n" +
+            '{"projectKey": "PROJ", "summary": "新機能の実装", "issueType": "Task", "description": "詳細な説明をここに記述"}',
+        },
+      ],
+    }),
+  );
+
+  // 課題検索ヘルプツール
+  server.tool(
+    "help-search-issues",
+    {},
+    async () => ({
+      content: [
+        {
+          type: "text",
+          text: "課題検索ツールの使用方法:\n\n" +
+            "必要なパラメータ:\n" +
+            "1. jql: JQL検索クエリ\n" +
+            "2. maxResults: 取得する最大結果数（オプション、デフォルト: 50）\n\n" +
+            "JQLの例:\n" +
+            '- project = "PROJ"\n' +
+            '- project = "PROJ" AND status = "Open"\n' +
+            '- project = "PROJ" AND priority = High AND assignee = currentUser()',
         },
       ],
     }),

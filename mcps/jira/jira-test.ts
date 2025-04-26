@@ -4,9 +4,9 @@ import { validateConfig } from "./server.ts";
 
 // 環境変数から設定を読み込む
 const config = validateConfig({
-  host: Deno.env.get("JIRA_HOST"),
+  baseUrl: Deno.env.get("JIRA_BASE_URL"),
   email: Deno.env.get("JIRA_EMAIL"),
-  token: Deno.env.get("JIRA_API_TOKEN"),
+  apiToken: Deno.env.get("JIRA_API_TOKEN"),
 });
 
 import { JiraApiClient } from "./jira.ts";

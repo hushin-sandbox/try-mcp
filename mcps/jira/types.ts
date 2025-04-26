@@ -1,27 +1,57 @@
 import { z } from "zod";
 
+// 設定スキーマ
 export const ConfigSchema = z.object({
-  host: z.string().url(),
+  baseUrl: z.string().url(),
   email: z.string().email(),
-  token: z.string(),
+  apiToken: z.string(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
 
-// Basic認証用のヘッダーを生成する型
-export interface BasicAuth {
-  email: string;
-  apiToken: string;
-}
+// 課題作成スキーマ
+export const IssueCreateSchema = z.object({
+  projectKey: z.string().describe("Jiraプロジェクトキー"),
+  summary: z.string().describe("課題のタイトル"),
+  description: z.string().optional().describe("課題の説明（オプション）"),
+  issueType: z.string().describe("課題タイプ（Task, Bug, Story など）"),
+});
 
-// API Response Types
+export type IssueCreate = z.infer<typeof IssueCreateSchema>;
+
+// 課題更新スキーマ
+export const IssueUpdateSchema = z.object({
+  issueKey: z.string().describe("更新する課題のキー"),
+  summary: z.string().optional().describe("課題のタイトル（オプション）"),
+  description: z.string().optional().describe("課題の説明（オプション）"),
+  status: z.string().optional().describe("課題のステータス（オプション）"),
+});
+
+export type IssueUpdate = z.infer<typeof IssueUpdateSchema>;
+
+// 課題検索スキーマ
+export const IssueSearchSchema = z.object({
+  jql: z.string().describe("JQL検索クエリ"),
+  maxResults: z.number().optional().default(50).describe(
+    "最大結果数（デフォルト: 50）",
+  ),
+});
+
+export type IssueSearch = z.infer<typeof IssueSearchSchema>;
+
+// コメント追加スキーマ
+export const CommentAddSchema = z.object({
+  issueKey: z.string().describe("コメントを追加する課題のキー"),
+  body: z.string().describe("コメントの本文"),
+});
+
+export type CommentAdd = z.infer<typeof CommentAddSchema>;
+
+// API レスポンス型
 export interface Project {
   id: string;
   key: string;
   name: string;
-  projectTypeKey: string;
-  simplified: boolean;
-  style: string;
 }
 
 export interface Issue {
@@ -33,73 +63,10 @@ export interface Issue {
     status?: {
       name: string;
     };
-    project: {
-      key: string;
-    };
-    issuetype: {
-      name: string;
-    };
   };
-}
-
-export interface Comment {
-  id: string;
-  body: string;
-  author: {
-    displayName: string;
-    emailAddress: string;
-  };
-  created: string;
-  updated: string;
 }
 
 export interface SearchResult {
-  total: number;
   issues: Issue[];
+  total: number;
 }
-
-export interface JiraClient {
-  getProjects(): Promise<Project[]>;
-  createIssue(
-    projectKey: string,
-    summary: string,
-    description?: string,
-    issueType?: string,
-  ): Promise<Issue>;
-  updateIssue(
-    issueKey: string,
-    updates: {
-      summary?: string;
-      description?: string;
-      status?: string;
-    },
-  ): Promise<void>;
-  searchIssues(jql: string, maxResults?: number): Promise<SearchResult>;
-  getIssue(issueKey: string): Promise<Issue>;
-  addComment(issueKey: string, body: string): Promise<Comment>;
-}
-
-// Issue関連の型定義
-export const IssueCreateSchema = z.object({
-  projectKey: z.string(),
-  summary: z.string(),
-  description: z.string().optional(),
-  issueType: z.string(),
-});
-
-export const IssueUpdateSchema = z.object({
-  issueKey: z.string(),
-  summary: z.string().optional(),
-  description: z.string().optional(),
-  status: z.string().optional(),
-});
-
-export const IssueSearchSchema = z.object({
-  jql: z.string(),
-  maxResults: z.number().min(1).max(100).default(50),
-});
-
-export const CommentAddSchema = z.object({
-  issueKey: z.string(),
-  body: z.string(),
-});

@@ -1,43 +1,47 @@
-import {
-  Comment,
-  Config,
-  Issue,
-  JiraClient,
-  Project,
-  SearchResult,
-} from "./types.ts";
+import { Config, Issue, Project, SearchResult } from "./types.ts";
 
-export class JiraApiClient implements JiraClient {
+export class JiraApiClient {
   private baseUrl: string;
-  private headers: Headers;
+  private email: string;
+  private apiToken: string;
+  private auth: string;
 
   constructor(config: Config) {
-    this.baseUrl = `${config.host}/rest/api/3`;
-    const auth = btoa(`${config.email}:${config.token}`);
-    this.headers = new Headers({
-      "Authorization": `Basic ${auth}`,
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-    });
+    this.baseUrl = config.baseUrl;
+    this.email = config.email;
+    this.apiToken = config.apiToken;
+    this.auth = btoa(`${this.email}:${this.apiToken}`);
   }
 
-  private async fetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
+  private async fetch<T>(
+    path: string,
+    options: RequestInit = {},
+  ): Promise<T> {
+    const url = new URL(path, this.baseUrl).toString();
+    const response = await fetch(url, {
       ...options,
-      headers: this.headers,
+      headers: {
+        ...options.headers,
+        "Authorization": `Basic ${this.auth}`,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
     });
 
     if (!response.ok) {
-      throw new Error(
-        `Jira API error: ${response.status} ${response.statusText}`,
-      );
+      const error = await response.text();
+      throw new Error(`Jira API error: ${response.status} ${error}`);
     }
 
-    return await response.json() as T;
+    return response.json() as Promise<T>;
   }
 
   async getProjects(): Promise<Project[]> {
-    return this.fetch<Project[]>("/project/search");
+    return this.fetch<Project[]>("/rest/api/3/project");
+  }
+
+  async getIssue(issueKey: string): Promise<Issue> {
+    return this.fetch<Issue>(`/rest/api/3/issue/${issueKey}`);
   }
 
   async createIssue(
@@ -45,57 +49,79 @@ export class JiraApiClient implements JiraClient {
     summary: string,
     description?: string,
     issueType = "Task",
-  ): Promise<Issue> {
-    return this.fetch<Issue>("/issue", {
-      method: "POST",
-      body: JSON.stringify({
-        fields: {
-          project: { key: projectKey },
-          summary,
-          description,
-          issuetype: { name: issueType },
-        },
-      }),
-    });
+  ): Promise<{ id: string; key: string }> {
+    return this.fetch<{ id: string; key: string }>(
+      "/rest/api/3/issue",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          fields: {
+            project: { key: projectKey },
+            summary,
+            description,
+            issuetype: { name: issueType },
+          },
+        }),
+      },
+    );
   }
 
   async updateIssue(
     issueKey: string,
-    { summary, description, status }: {
+    fields: {
       summary?: string;
       description?: string;
       status?: string;
     },
   ): Promise<void> {
-    const fields: Record<string, unknown> = {};
-    if (summary) fields.summary = summary;
-    if (description) fields.description = description;
-    if (status) fields.status = { name: status };
+    const body: {
+      fields: {
+        summary?: string;
+        description?: string;
+        status?: { name: string };
+      };
+    } = { fields: {} };
 
-    await this.fetch(`/issue/${issueKey}`, {
-      method: "PUT",
-      body: JSON.stringify({ fields }),
-    });
+    if (fields.summary) {
+      body.fields.summary = fields.summary;
+    }
+    if (fields.description) {
+      body.fields.description = fields.description;
+    }
+    if (fields.status) {
+      body.fields.status = { name: fields.status };
+    }
+
+    await this.fetch(
+      `/rest/api/3/issue/${issueKey}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(body),
+      },
+    );
   }
 
   async searchIssues(jql: string, maxResults = 50): Promise<SearchResult> {
-    return this.fetch<SearchResult>("/search", {
-      method: "POST",
-      body: JSON.stringify({
-        jql,
-        maxResults,
-      }),
-    });
+    return this.fetch<SearchResult>(
+      "/rest/api/3/search",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          jql,
+          maxResults,
+          fields: ["summary", "description", "status"],
+        }),
+      },
+    );
   }
 
-  async getIssue(issueKey: string): Promise<Issue> {
-    return this.fetch<Issue>(`/issue/${issueKey}?fields=*all`);
-  }
-
-  async addComment(issueKey: string, body: string): Promise<Comment> {
-    return this.fetch<Comment>(`/issue/${issueKey}/comment`, {
-      method: "POST",
-      body: JSON.stringify({ body }),
-    });
+  async addComment(issueKey: string, body: string): Promise<void> {
+    await this.fetch(
+      `/rest/api/3/issue/${issueKey}/comment`,
+      {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      },
+    );
   }
 }
