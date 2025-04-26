@@ -1,16 +1,12 @@
 import {
   Config,
   Issue,
-  IssueType,
   Project,
   RawDescription,
   RawDescriptionContent,
   RawIssue,
-  RawIssueType,
   RawProject,
-  RawStatus,
   SearchResult,
-  Status,
 } from "./types.ts";
 
 export class JiraApiClient {
@@ -151,25 +147,6 @@ export class JiraApiClient {
   }
 
   private formatIssue(rawIssue: RawIssue): Issue {
-    const formatIssueType = (
-      rawType?: RawIssueType,
-    ): IssueType | undefined => {
-      if (!rawType) return undefined;
-      return {
-        name: rawType.name,
-        description: rawType.description,
-        hierarchyLevel: rawType.hierarchyLevel,
-      };
-    };
-
-    const formatStatus = (rawStatus?: RawStatus): Status | undefined => {
-      if (!rawStatus) return undefined;
-      return {
-        name: rawStatus.name,
-        category: rawStatus.statusCategory.key,
-      };
-    };
-
     return {
       key: rawIssue.key,
       url: `${this.baseUrl}/browse/${rawIssue.key}`,
@@ -178,8 +155,8 @@ export class JiraApiClient {
         description: this.convertDescriptionToMarkdown(
           rawIssue.fields.description,
         ),
-        issuetype: formatIssueType(rawIssue.fields.issuetype),
-        status: formatStatus(rawIssue.fields.status),
+        issuetype: rawIssue.fields?.issuetype?.name,
+        status: rawIssue.fields?.status?.name,
         parent: rawIssue.fields.parent
           ? this.formatIssue(rawIssue.fields.parent)
           : undefined,

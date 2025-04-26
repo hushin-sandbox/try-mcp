@@ -112,25 +112,14 @@ export interface Project {
   url: string;
 }
 
-export interface IssueType {
-  name: string;
-  description?: string;
-  hierarchyLevel: number;
-}
-
-export interface Status {
-  name: string;
-  category: string;
-}
-
 export interface Issue {
   key: string;
   url: string;
   fields: {
     summary: string;
     description?: string;
-    status?: Status;
-    issuetype?: IssueType;
+    status?: string;
+    issuetype?: string;
     parent?: Issue;
   };
 }
