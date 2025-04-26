@@ -27,7 +27,7 @@ const targetDir = `mcps/${mcpName}`;
 // テンプレートファイルの内容
 const denoJsonContent = {
   tasks: {
-    dev: "deno run --watch index.ts",
+    dev: "deno run --env -A --watch index.ts",
   },
   imports: {
     "@std/assert": "jsr:@std/assert@1",
