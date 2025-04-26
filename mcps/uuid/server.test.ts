@@ -4,7 +4,7 @@ import { createServer } from "./server.ts";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
-import { validate } from "@std/uuid";
+import { validate } from "uuid";
 
 test("generate-uuid should return a valid UUID v4", async () => {
   const mcpServer = createServer();
