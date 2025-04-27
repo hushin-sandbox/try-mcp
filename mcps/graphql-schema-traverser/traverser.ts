@@ -1,5 +1,4 @@
 import {
-  buildSchema,
   GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
@@ -106,7 +105,7 @@ export class SchemaTraverser {
    * フィールドから到達可能な型を収集
    */
   private collectFromFields(
-    fields: { [key: string]: { type: any } },
+    fields: { [key: string]: { type: unknown } },
     collectedTypes: Set<GraphQLNamedType>,
   ): void {
     for (const field of Object.values(fields)) {
@@ -118,7 +117,7 @@ export class SchemaTraverser {
    * 出力型から到達可能な型を収集
    */
   private collectFromOutputType(
-    type: any,
+    type: unknown,
     collectedTypes: Set<GraphQLNamedType>,
   ): void {
     if (type instanceof GraphQLNonNull || type instanceof GraphQLList) {
@@ -137,7 +136,7 @@ export class SchemaTraverser {
    * 入力型から到達可能な型を収集
    */
   private collectFromInputType(
-    type: any,
+    type: unknown,
     collectedTypes: Set<GraphQLNamedType>,
   ): void {
     if (type instanceof GraphQLNonNull || type instanceof GraphQLList) {
