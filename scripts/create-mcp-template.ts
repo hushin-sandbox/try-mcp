@@ -120,7 +120,7 @@ await $`mkdir -p ${targetDir}`;
 // ファイル作成
 await Deno.writeTextFile(
   `${targetDir}/deno.json`,
-  JSON.stringify(denoJsonContent, null, 2),
+  JSON.stringify(denoJsonContent, null, 2) + "\n",
 );
 await Deno.writeTextFile(`${targetDir}/index.ts`, indexTsContent);
 await Deno.writeTextFile(`${targetDir}/server.ts`, serverTsContent);
