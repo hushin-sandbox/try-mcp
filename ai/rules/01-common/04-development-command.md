@@ -10,3 +10,8 @@ deno test
 # サーバー起動, watch
 deno task dev
 ```
+
+### deno コマンド 重要事項
+
+- deno コマンド実行前に `cd mcps/<mcp-server-name>` で terminal のディレクトリを移動すること
+- `cd mcps/<mcp-server-name> && deno check .` のようにコマンドを連結して実行することは**禁止です**。必ずコマンドを分けて実行してください

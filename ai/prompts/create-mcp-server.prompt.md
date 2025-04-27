@@ -36,8 +36,6 @@ mcps/
 4. パッケージを使うとき: 必要に応じて `deno add jsr:@david/dax@0.42.0` のようにコマンドを実行して `deno.json` に依存を追加する。
    - **deno.json を直接編集しないこと**
 5. `deno check .` で TypeScript 構文チェック
-   - コマンド実行前に `cd mcps/<mcp-server-name>` で terminal のディレクトリを移動
-   - `cd mcps/<mcp-server-name> && deno check .` のようにコマンドを連結して実行することは**禁止です**。コマンドを分けて実行してください
 6. server.test.ts を編集しテストを書き、 `deno test` で実行
 7. MCP インスペクターでのテスト `npx @modelcontextprotocol/inspector deno task dev`
    - open http://localhost:6274/
