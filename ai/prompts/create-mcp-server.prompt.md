@@ -181,7 +181,8 @@ export const createServer = () => {
 
 ### 1. エラー処理の欠落
 
-ツールやリソースのハンドラで適切なエラー処理を行わないと、予期しない例外が発生する可能性があります。常に try-catch ブロックを使用し、エラーステータスを適切に返してください。
+ツールやリソースのハンドラで適切なエラー処理を行わないと、予期しない例外が発生する可能性があります。
+エラーが発生する可能性がある処理を行う場合は try-catch ブロックを使用し、エラーステータスを適切に返してください。
 
 ```typescript
 // 良い例
@@ -190,8 +191,9 @@ server.tool('example', { input: z.string() }, async ({ input }) => {
     // 処理
     return { content: [{ type: 'text', text: '結果' }] };
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     return {
-      content: [{ type: 'text', text: `エラー: ${error.message}` }],
+      content: [{ type: 'text', text: `エラー: ${message}` }],
       isError: true,
     };
   }
