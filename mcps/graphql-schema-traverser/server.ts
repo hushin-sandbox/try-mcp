@@ -1,8 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { SchemaFetcher } from "./schema-fetcher.ts";
+import { fetchSchema } from "./schema-fetcher.ts";
 import { SchemaTraverser } from "./traverser.ts";
-import { SchemaFetchError, SchemaTraverseError } from "./types.ts";
 
 /**
  * MCPサーバーの設定と実装
@@ -15,7 +14,6 @@ export const createServer = () => {
       "GraphQLスキーマから特定のtypeから辿れる型を抽出するMCPサーバー",
   });
 
-  const schemaFetcher = new SchemaFetcher();
   const schemaTraverser = new SchemaTraverser();
 
   server.tool(
@@ -28,7 +26,7 @@ export const createServer = () => {
     async ({ endpoint, typeName }) => {
       try {
         // スキーマの取得
-        const schema = await schemaFetcher.fetchSchema(endpoint);
+        const schema = await fetchSchema(endpoint);
 
         // 指定された型から到達可能な型を収集
         const reachableTypes = schemaTraverser.traverseFromType(
