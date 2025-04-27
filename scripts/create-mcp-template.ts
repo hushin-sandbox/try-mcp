@@ -105,7 +105,7 @@ test("${mcpName}", async () => {
   const result = await client.callTool({
     name: "", // TODO 実装したtoolの名前
     arguments: {
-      input: "Hello, world!", // TODO 書き換え
+      arg1: "Hello, world!", // TODO 書き換え
     },
   });
 
