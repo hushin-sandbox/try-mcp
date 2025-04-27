@@ -109,7 +109,7 @@ test("${mcpName}", async () => {
     },
   });
 
-  const toolResult = result.result as CallToolResult;
+  const toolResult = result as CallToolResult;
   expect(toolResult.content[0].type).toBe("text");
   // TODO toolResult.content[0].text のテスト
 });
