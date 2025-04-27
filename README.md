@@ -21,16 +21,24 @@ MCP サーバを作って試す
 
 ## Usage
 
-VSCode Copilot Chat で試す。
+VSCode Copilot Chat で試す
 
-実験で作ったのであまり意味はない。
+## graphql-schema-traverser
 
 ```
-UUID を作成して ai-out/(uuid).md に 「hoge」と書かれたファイルを作って
+https://example.com/graphql の type User を辿って説明して
 ```
+
+## jira
 
 ```
 Jiraのプロジェクト一覧取得して
+```
+
+## uuid
+
+```
+UUID を作成して ai-out/(uuid).md に 「hoge」と書かれたファイルを作って
 ```
 
 ## Development
@@ -52,12 +60,26 @@ npx @modelcontextprotocol/inspector deno task dev
 
 http://localhost:6274/ で確認
 
+### lint
+
+全部 lint 実行
+
+```bash
+for dir in mcps/*; do if [ -d "$dir" ]; then cd "$dir" && echo "Testing in $dir" && deno lint && cd -; fi; done
+```
+
 ### testing
 
 全部テスト実行
 
 ```bash
 for dir in mcps/*; do if [ -d "$dir" ]; then cd "$dir" && echo "Testing in $dir" && deno test && cd -; fi; done
+```
+
+### format
+
+```bash
+deno fmt
 ```
 
 ## 参考にしたもの
