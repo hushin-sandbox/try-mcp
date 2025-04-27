@@ -34,10 +34,9 @@ test("string-reverser", async () => {
       arguments: {
         text: input,
       },
-    });
+    }) as CallToolResult;
 
-    const toolResult = result as CallToolResult;
-    expect(toolResult.content[0].type).toBe("text");
-    expect(toolResult.content[0].text).toBe(expected);
+    expect(result.content[0].type).toBe("text");
+    expect(result.content[0].text).toBe(expected);
   }
 });

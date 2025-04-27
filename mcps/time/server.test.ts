@@ -23,11 +23,10 @@ test("time", async () => {
   const result = await client.callTool({
     name: "get_current_time", // ツール名を指定
     arguments: {}, // 引数なし
-  });
+  }) as CallToolResult;
 
-  const toolResult = result as CallToolResult;
-  expect(toolResult.content[0].type).toBe("text");
+  expect(result.content[0].type).toBe("text");
   // 返されたテキストがISO 8601形式のタイムスタンプであることを確認
   const timestampRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-  expect(toolResult.content[0].text).toMatch(timestampRegex);
+  expect(result.content[0].text).toMatch(timestampRegex);
 });

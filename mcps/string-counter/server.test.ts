@@ -25,11 +25,10 @@ test("string-counter", async () => {
     arguments: {
       text: "Hello, world!",
     },
-  });
+  }) as CallToolResult;
 
-  const toolResult = result as CallToolResult;
-  expect(toolResult.content[0].type).toBe("text");
-  expect((toolResult.content[0] as { type: "text"; text: string }).text).toBe(
+  expect(result.content[0].type).toBe("text");
+  expect((result.content[0] as { type: "text"; text: string }).text).toBe(
     "13",
   );
 });

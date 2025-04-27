@@ -52,6 +52,14 @@ npx @modelcontextprotocol/inspector deno task dev
 
 http://localhost:6274/ で確認
 
+### testing
+
+全部テスト実行
+
+```bash
+for dir in mcps/*; do if [ -d "$dir" ]; then cd "$dir" && echo "Testing in $dir" && deno test && cd -; fi; done
+```
+
 ## 参考にしたもの
 
 ### MCP 公式

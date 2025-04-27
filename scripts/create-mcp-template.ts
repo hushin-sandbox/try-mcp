@@ -107,11 +107,10 @@ test("${mcpName}", async () => {
     arguments: {
       arg1: "Hello, world!", // TODO 書き換え
     },
-  });
+  }) as CallToolResult;
 
-  const toolResult = result as CallToolResult;
-  expect(toolResult.content[0].type).toBe("text");
-  // TODO toolResult.content[0].text のテスト
+  expect(result.content[0].type).toBe("text");
+  // TODO result.content[0].text のテスト
 });
 `;
 

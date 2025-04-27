@@ -23,10 +23,9 @@ test("generate-uuid should return a valid UUID v4", async () => {
 
   const result = await client.callTool({
     name: "generate-uuid",
-  });
+  }) as CallToolResult;
 
-  const toolResult = result.result as CallToolResult;
-  expect(toolResult.content[0].type).toBe("text");
-  const uuid = toolResult.content[0].text;
+  expect(result.content[0].type).toBe("text");
+  const uuid = result.content[0].text;
   expect(validate(uuid)).toBe(true);
 });
