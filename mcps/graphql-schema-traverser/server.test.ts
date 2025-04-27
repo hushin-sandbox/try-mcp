@@ -1,55 +1,61 @@
 import { expect } from "@std/expect";
-import { describe, it } from "@std/testing/bdd";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
+import { Stub, stub } from "@std/testing/mock";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "./server.ts";
 import { buildSchema } from "npm:graphql";
+import { graphql } from "npm:graphql";
+import { getIntrospectionQuery } from "npm:graphql";
 
 describe("GraphQL Schema Traverser", () => {
-  const mockSchema = buildSchema(`
-    type Query {
-      user: User
-      post: Post
-    }
+  let fetchStub: Stub<
+    typeof globalThis,
+    Parameters<typeof fetch>,
+    ReturnType<typeof fetch>
+  >;
 
-    type User {
-      id: ID!
-      name: String!
-      posts: [Post!]!
-    }
-
-    type Post {
-      id: ID!
-      title: String!
-      author: User!
-    }
-  `);
-
-  const mockFetch = async (
-    input: string | URL | Request,
-    init?: RequestInit,
-  ): Promise<Response> => {
-    if (init?.method === "POST") {
-      const body = JSON.parse(init.body as string);
-      if (body.query.includes("IntrospectionQuery")) {
-        return new Response(JSON.stringify({ data: mockSchema }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
+  beforeEach(async () => {
+    const mockSchema = buildSchema(`
+      type Query {
+        user: User
+        post: Post
       }
-    }
-    return new Response(
-      JSON.stringify({ errors: [{ message: "Invalid query" }] }),
+
+      type User {
+        id: ID!
+        name: String!
+        posts: [Post!]!
+      }
+
+      type Post {
+        id: ID!
+        title: String!
+        author: User!
+      }
+    `);
+    const schemaResult = await graphql({
+      schema: mockSchema,
+      source: getIntrospectionQuery(),
+    });
+
+    const mockResponse = new Response(
+      JSON.stringify(schemaResult),
       {
-        status: 400,
+        status: 200,
         headers: { "Content-Type": "application/json" },
       },
     );
-  };
 
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = mockFetch;
+    fetchStub = stub(globalThis, "fetch", async () => {
+      return mockResponse;
+    });
+  });
+
+  afterEach(() => {
+    fetchStub.restore();
+  });
 
   it("指定された型から辿れる全ての型を抽出できる", async () => {
     const server = createServer();
@@ -112,9 +118,16 @@ describe("GraphQL Schema Traverser", () => {
   });
 
   it("無効なエンドポイントの場合にエラーを返す", async () => {
-    // グローバルfetch関数を復元して失敗するようにする
-    globalThis.fetch = originalFetch;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    fetchStub.restore();
+    fetchStub = stub(globalThis, "fetch", async () => {
+      return new Response(
+        JSON.stringify({ errors: [{ message: "Invalid endpoint" }] }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    });
 
     const server = createServer();
     const client = new Client({
