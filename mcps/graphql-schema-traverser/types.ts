@@ -2,12 +2,21 @@
  * GraphQL schema traverser の型定義
  */
 
+import { z } from "zod";
+
+/**
+ * 設定スキーマ
+ */
+export const ConfigSchema = z.object({
+  endpoint: z.string().url("有効なGraphQL endpoint URLを指定してください"),
+});
+
+export type Config = z.infer<typeof ConfigSchema>;
+
 /**
  * スキーマトラバーサーの入力パラメータ
  */
 export interface SchemaTraverserInput {
-  /** GraphQL endpoint URL */
-  endpoint: string;
   /** 開始点となるtype名 */
   typeName: string;
 }

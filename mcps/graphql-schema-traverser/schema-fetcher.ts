@@ -8,14 +8,16 @@ import { SchemaFetchError } from "./types.ts";
 
 /**
  * GraphQLエンドポイントからスキーマを取得
- * @param endpoint GraphQLエンドポイントURL
+ * @param config GraphQLエンドポイントの設定
  * @returns GraphQLスキーマ
  * @throws SchemaFetchError スキーマ取得に失敗した場合
  */
-export async function fetchSchema(endpoint: string): Promise<GraphQLSchema> {
+export async function fetchSchema(
+  config: { endpoint: string },
+): Promise<GraphQLSchema> {
   try {
     const query = getIntrospectionQuery();
-    const response = await fetch(endpoint, {
+    const response = await fetch(config.endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

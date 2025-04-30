@@ -58,7 +58,10 @@ describe("GraphQL Schema Traverser", () => {
   });
 
   it("指定された型から辿れる全ての型を抽出できる", async () => {
-    const server = createServer();
+    const config = {
+      endpoint: "http://example.com/graphql",
+    };
+    const server = createServer(config);
     const client = new Client({
       name: "test client",
       version: "1.0",
@@ -75,7 +78,6 @@ describe("GraphQL Schema Traverser", () => {
     const result = await client.callTool({
       name: "traverse-schema",
       arguments: {
-        endpoint: "http://example.com/graphql",
         typeName: "User",
       },
     }) as CallToolResult;
@@ -88,7 +90,10 @@ describe("GraphQL Schema Traverser", () => {
   });
 
   it("存在しない型名を指定した場合にエラーを返す", async () => {
-    const server = createServer();
+    const config = {
+      endpoint: "http://example.com/graphql",
+    };
+    const server = createServer(config);
     const client = new Client({
       name: "test client",
       version: "1.0",
@@ -105,7 +110,6 @@ describe("GraphQL Schema Traverser", () => {
     const result = await client.callTool({
       name: "traverse-schema",
       arguments: {
-        endpoint: "http://example.com/graphql",
         typeName: "NonExistentType",
       },
     }) as CallToolResult;
@@ -129,7 +133,10 @@ describe("GraphQL Schema Traverser", () => {
       );
     });
 
-    const server = createServer();
+    const config = {
+      endpoint: "http://invalid-endpoint",
+    };
+    const server = createServer(config);
     const client = new Client({
       name: "test client",
       version: "1.0",
@@ -146,7 +153,6 @@ describe("GraphQL Schema Traverser", () => {
     const result = await client.callTool({
       name: "traverse-schema",
       arguments: {
-        endpoint: "http://invalid-endpoint",
         typeName: "User",
       },
     }) as CallToolResult;

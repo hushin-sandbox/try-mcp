@@ -2,11 +2,12 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { fetchSchema } from "./schema-fetcher.ts";
 import { SchemaTraverser } from "./traverser.ts";
+import { Config, ConfigSchema } from "./types.ts";
 
 /**
  * MCPサーバーの設定と実装
  */
-export const createServer = () => {
+export const createServer = (config: Config) => {
   const server = new McpServer({
     name: "graphql-schema-traverser",
     version: "1.0.0",
@@ -20,13 +21,12 @@ export const createServer = () => {
     "traverse-schema",
     "GraphQLスキーマから特定のtypeから辿れる型を抽出",
     {
-      endpoint: z.string().url("有効なGraphQL endpoint URLを指定してください"),
       typeName: z.string().min(1, "type名を指定してください"),
     },
-    async ({ endpoint, typeName }) => {
+    async ({ typeName }) => {
       try {
         // スキーマの取得
-        const schema = await fetchSchema(endpoint);
+        const schema = await fetchSchema(config);
 
         // 指定された型から到達可能な型を収集
         const reachableTypes = schemaTraverser.traverseFromType(
@@ -52,3 +52,8 @@ export const createServer = () => {
 
   return server;
 };
+
+// 設定のバリデーション関数
+export function validateConfig(config: unknown): Config {
+  return ConfigSchema.parse(config);
+}
