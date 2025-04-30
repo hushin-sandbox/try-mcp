@@ -6,8 +6,12 @@ import {
 } from "npm:graphql";
 import { SchemaFetchError } from "./types.ts";
 
+/** インメモリキャッシュ: endpointごとのGraphQLSchema */
+const schemaCache = new Map<string, GraphQLSchema>();
+
 /**
  * GraphQLエンドポイントからスキーマを取得
+ * 同じエンドポイントのスキーマは成功時にキャッシュされ、2回目以降はキャッシュから返される
  * @param config GraphQLエンドポイントの設定
  * @returns GraphQLスキーマ
  * @throws SchemaFetchError スキーマ取得に失敗した場合
@@ -15,6 +19,12 @@ import { SchemaFetchError } from "./types.ts";
 export async function fetchSchema(
   config: { endpoint: string },
 ): Promise<GraphQLSchema> {
+  // キャッシュにヒットした場合はそれを返す
+  const cached = schemaCache.get(config.endpoint);
+  if (cached) {
+    return cached;
+  }
+
   try {
     const query = getIntrospectionQuery();
     const response = await fetch(config.endpoint, {
@@ -43,7 +53,10 @@ export async function fetchSchema(
     }
 
     const introspectionQuery = result.data as IntrospectionQuery;
-    return buildClientSchema(introspectionQuery);
+    const schema = buildClientSchema(introspectionQuery);
+    // 成功したらキャッシュに保存
+    schemaCache.set(config.endpoint, schema);
+    return schema;
   } catch (error) {
     throw new SchemaFetchError(
       "Failed to fetch and build GraphQL schema",
