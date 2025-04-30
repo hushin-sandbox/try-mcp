@@ -63,5 +63,21 @@ await Deno.writeTextFile(
   ".vscode/mcp.json",
   JSON.stringify(mcpConfig, null, 2),
 );
-
 console.log("✨ Generated .vscode/mcp.json");
+
+// --- Generate global-mcp.json ---
+const globalMcpConfig = JSON.parse(JSON.stringify(mcpConfig)); // Deep copy
+const cwd = Deno.cwd();
+
+for (const serverKey in globalMcpConfig.servers) {
+  const server = globalMcpConfig.servers[serverKey];
+  server.args = server.args.map((arg: string) =>
+    arg.replace(/\${workspaceFolder}/g, cwd)
+  );
+}
+
+await Deno.writeTextFile(
+  ".vscode/global-mcp.json",
+  JSON.stringify(globalMcpConfig, null, 2),
+);
+console.log("✨ Generated .vscode/global-mcp.json");

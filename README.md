@@ -19,6 +19,8 @@ MCP サーバを作って試す
 - `JIRA_API_TOKEN` - Jira Cloud の API トークン
   - https://id.atlassian.com/manage-profile/security/api-tokens から取得可能
 
+`.vscode/global-mcp.json` にもファイルが出来るので、User Settings (JSON) に追加するときはこのファイルからコピーして使う。
+
 ## Usage
 
 VSCode Copilot Chat で試す
