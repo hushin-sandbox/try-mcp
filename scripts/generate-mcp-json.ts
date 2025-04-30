@@ -21,6 +21,12 @@ const mcpConfig = {
       "description": "JIRA_API_TOKEN",
       "password": true,
     },
+    {
+      "type": "promptString",
+      "id": "graphql_endpoint",
+      "description": "GRAPHQL_ENDPOINT (e.g. http://localhost:4000/graphql)",
+      "password": false,
+    },
   ],
   servers: {} as Record<
     string,
@@ -47,6 +53,10 @@ try {
           "JIRA_BASE_URL": "${input:jira_base_url}",
           "JIRA_EMAIL": "${input:jira_email}",
           "JIRA_API_TOKEN": "${input:jira_api_token}",
+        };
+      } else if (server === "graphql-schema-traverser") {
+        mcpConfig.servers[server].env = {
+          "GRAPHQL_ENDPOINT": "${input:graphql_endpoint}",
         };
       }
     }
