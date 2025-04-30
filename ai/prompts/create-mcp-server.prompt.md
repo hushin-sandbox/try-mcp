@@ -32,42 +32,126 @@ mcps/
 
 1. 要件の明確化
 2. `./scripts/create-mcp-template.ts --name <mcp-server-name>` で雛形を生成
-3. server.ts を編集
-4. パッケージを使うとき: 必要に応じて `deno add jsr:@david/dax@0.42.0` のようにコマンドを実行して `deno.json` に依存を追加する。
+3. `cd mcps/<mcp-server-name>`
+4. `deno install` で 依存関係のインストール
+5. server.ts を編集
+6. パッケージを使うとき: 必要に応じて `deno add jsr:@david/dax@0.42.0` のようにコマンドを実行して `deno.json` に依存を追加する。
    - **deno.json を直接編集しないこと**
-5. `deno check .` で TypeScript 構文チェック
-6. server.test.ts を編集しテストを書き、 `deno test` で実行
-7. MCP インスペクターでのテスト `npx @modelcontextprotocol/inspector deno task dev`
+7. `deno check .` で TypeScript 構文チェック
+8. server.test.ts を編集しテストを書き、 `deno test` で実行
+9. MCP インスペクターでのテスト `npx @modelcontextprotocol/inspector deno task dev`
    - open http://localhost:6274/
 
-## パターンの説明
+## 雛形の説明
 
-MCP サーバーの実装は、以下の主要コンポーネントで構成されます：
+以下に簡単な計算機能を提供する MCP サーバーの実装例をもとに説明します。
 
-### 1. サーバー設定と初期化
+### サーバー接続: index.ts
+
+基本的に編集する必要はありません。
+
+```typescript
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { createServer } from './server.ts';
+
+async function main() {
+  const server = createServer();
+  const transport = new StdioServerTransport();
+
+  await server.connect(transport);
+}
+
+main().catch((error) => {
+  console.error('Fatal error in main():', error);
+  Deno.exit(1);
+});
+```
+
+### サーバ設定とツールの実装: server.ts
 
 ```typescript
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod'; // パラメータバリデーション用
+import { z } from 'zod';
 
-// MCPサーバーインスタンスを作成 (server.ts で createServer 内で定義)
-const server = new McpServer({
-  name: 'サーバー名',
-  version: '1.0.0',
-});
+/**
+ * MCPサーバーの設定と実装
+ */
+export const createServer = () => {
+  // サーバーの作成
+  const server = new McpServer({
+    name: 'Calculator',
+    version: '1.0.0',
+  });
 
-// サーバーコンポーネントを設定（以下のセクションで詳細を説明）
-// ...ツールの定義
+  // 計算機能を提供するツール
+  server.tool(
+    'calculate',
+    '数式を評価して計算結果を返します',
+    {
+      expression: z.string().describe('計算式（例: 2 + 2、5 * 3 など）'),
+    },
+    async ({ expression }) => {
+      try {
+        // 注意: 実際のアプリケーションでは、eval の使用は避け、安全な計算ライブラリを使用してください
+        const result = eval(expression);
 
-// トランスポートを選択して接続 (index.ts で定義)
-const transport = new StdioServerTransport();
-await server.connect(transport);
+        return {
+          content: [{ type: 'text', text: String(result) }],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `計算エラー: ${error.message}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  return server;
+};
 ```
 
-### 2. ツール（Tools）の実装
+### テスト: server.test.ts
 
-ツールは、LLM が実行できる機能/アクションを表します：
+```typescript
+import { expect } from '@std/expect';
+import { test } from '@std/testing/bdd';
+import { createServer } from './server.ts';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+
+test('hoge', async () => {
+  const server = createServer();
+  const client = new Client({
+    name: 'test client',
+    version: '1.0',
+  });
+
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+
+  await Promise.all([
+    client.connect(clientTransport),
+    server.connect(serverTransport),
+  ]);
+
+  const result = (await client.callTool({
+    name: '', // TODO 実装したtoolの名前
+    arguments: {
+      arg1: 'Hello, world!', // TODO 書き換え
+    },
+  })) as CallToolResult;
+
+  expect(result.content[0].type).toBe('text');
+  const text = result.content[0].text as string;
+  // TODO text のテスト
+});
+```
+
+## ツール実装パターン
+
+ツールは、LLM が実行できる機能/アクションを表します。
 
 ```typescript
 // シンプルなツールの定義
@@ -127,52 +211,6 @@ server.tool(
     }
   }
 );
-```
-
-## 実装例
-
-以下は、簡単な計算機能を提供する MCP サーバーの実装例です：
-
-```typescript
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
-
-/**
- * MCPサーバーの設定と実装
- */
-export const createServer = () => {
-  // サーバーの作成
-  const server = new McpServer({
-    name: 'Calculator',
-    version: '1.0.0',
-  });
-
-  // 計算機能を提供するツール
-  server.tool(
-    'calculate',
-    '数式を評価して計算結果を返します',
-    {
-      expression: z.string().describe('計算式（例: 2 + 2、5 * 3 など）'),
-    },
-    async ({ expression }) => {
-      try {
-        // 注意: 実際のアプリケーションでは、eval の使用は避け、安全な計算ライブラリを使用してください
-        const result = eval(expression);
-
-        return {
-          content: [{ type: 'text', text: String(result) }],
-        };
-      } catch (error) {
-        return {
-          content: [{ type: 'text', text: `計算エラー: ${error.message}` }],
-          isError: true,
-        };
-      }
-    }
-  );
-
-  return server;
-};
 ```
 
 ## 一般的な落とし穴
